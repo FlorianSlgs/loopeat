@@ -1,0 +1,89 @@
+<div class="carousel-container relative w-full h-[500px] overflow-hidden mt-24">
+  
+  <!-- Slides -->
+  <div class="slides-wrapper relative w-full h-full">
+    @for (slide of slides; track slide.id; let i = $index) {
+      <div class="slide absolute inset-0 w-full h-full"
+          [style.transform]="'translateX(' + ((i - currentSlide) * 100) + '%)'"
+          [style.transition]="'transform 0.7s ease-in-out'"
+          [style.z-index]="currentSlide === i ? '2' : '1'"
+          [style.background-image]="'url(' + slide.backgroundImage + ')'"
+          style="background-size: cover; background-position: center;">
+        
+        <!-- Overlay vert -->
+        <div class="absolute inset-0 bg-gradient-to-b from-emerald-600/85 to-emerald-700/85"></div>
+        
+        <!-- Contenu -->
+        <div class="relative z-20 h-full flex flex-col items-center justify-center text-white px-4">
+          <h1 class="text-2xl md:text-3xl lg:text-4xl font-bold text-center mb-12 max-w-4xl transition-all duration-700"
+              [class.opacity-100]="currentSlide === i"
+              [class.opacity-0]="currentSlide !== i"
+              [class.translate-y-0]="currentSlide === i"
+              [class.translate-y-10]="currentSlide !== i">
+            {{ slide.title }}
+          </h1>
+          <p class="font-bold text-lg md:text-xl lg:text-2xl text-center mb-8 max-w-3xl transition-all duration-700 delay-100"
+            [class.opacity-100]="currentSlide === i"
+            [class.opacity-0]="currentSlide !== i"
+            [class.translate-y-0]="currentSlide === i"
+            [class.translate-y-10]="currentSlide !== i">
+            {{ slide.subtitle }}
+          </p>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Boutons de navigation -->
+  <button (click)="previousSlide()"
+          class="nav-button absolute left-8 top-1/2 -translate-y-1/2 z-30 
+                 bg-yellow-400 hover:bg-yellow-500 text-emerald-800 w-12 h-12 
+                 rounded-full flex items-center justify-center transition-all 
+                 duration-300 transform hover:scale-110 hover:cursor-pointer">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7" />
+    </svg>
+  </button>
+
+  <button (click)="nextSlide()"
+          class="nav-button absolute right-8 top-1/2 -translate-y-1/2 z-30 
+                 bg-yellow-400 hover:bg-yellow-500 text-emerald-800 w-12 h-12 
+                 rounded-full flex items-center justify-center transition-all 
+                 duration-300 transform hover:scale-110 hover:cursor-pointer">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7" />
+    </svg>
+  </button>
+
+<!-- Indicateurs avec cercles animés -->
+<div class="indicators absolute bottom-12 left-1/2 -translate-x-1/2 z-30 flex gap-6">
+  @for (slide of slides; track slide.id; let i = $index) {
+    <button (click)="goToSlide(i)"
+            class="indicator-wrapper relative w-12 h-12 flex items-center justify-center hover:cursor-pointer">
+      
+      <!-- Cercle de progression animé -->
+      <svg class="absolute inset-0 w-full h-full rotate-90">
+        <circle cx="24" cy="24" r="10"
+                stroke="rgba(255, 255, 255, 0.3)"
+                stroke-width="2"
+                fill="none" />
+        <circle cx="24" cy="24" r="10"
+                class="progress-circle"
+                [class.active]="currentSlide === i"
+                stroke="white"
+                stroke-width="2"
+                fill="none"
+                stroke-dasharray="125.6"
+                stroke-dashoffset="125.6" />
+      </svg>
+      
+      <!-- Point central -->
+      <span class="relative w-1.5 h-1.5 rounded-full transition-all duration-300"
+            [class.bg-white]="currentSlide === i"
+            [class.scale-125]="currentSlide === i"
+            [class.bg-white/50]="currentSlide !== i">
+      </span>
+    </button>
+  }
+</div>
+</div>

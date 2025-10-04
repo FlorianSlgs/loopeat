@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+@theme {
+    --font-family: "Poppins", sans-serif;
+    --font-header: "LT Reponse", sans-serif;
+    --font-bold: "Poppins Bold", sans-serif;
+}
+
+@font-face {
+    font-family: 'LT Reponse';
+    src: url('/fonts/lt_response/LTReponse.woff2') format('woff2'),
+        url('/fonts/lt_response/LTReponse.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'LT Reponse';
+    src: url('/fonts/lt_response/LTReponseBold.woff2') format('woff2'),
+        url('/fonts/lt_response/LTReponseBold.woff') format('woff');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Poppins';
+    src: url('/fonts/poppins/Poppins-Bold.woff2') format('woff2'),
+        url('/fonts/poppins/Poppins-Bold.woff') format('woff');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Poppins';
+    src: url('/fonts/poppins/Poppins-Regular.woff2') format('woff2'),
+        url('/fonts/poppins/Poppins-Regular.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}

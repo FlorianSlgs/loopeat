@@ -1,0 +1,117 @@
+/* Animations personnalisées */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes progressCircle {
+  from {
+    stroke-dashoffset: 125.6;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Classes d'animation */
+.animate-slideUp {
+  animation: slideUp 0.8s ease-out forwards;
+}
+
+.animate-fadeIn {
+  animation: fadeIn 1s ease-out forwards;
+  animation-delay: 0.3s;
+}
+
+/* Animation du cercle de progression - PART D'EN BAS */
+.progress-circle {
+  transition: none;
+  transform-origin: center;
+}
+
+.progress-circle.active {
+  animation: progressCircle 20s linear forwards;
+}
+
+/* SVG fixe en rotation de 90° pour partir d'en bas */
+.indicator-wrapper svg {
+  transform-origin: center;
+}
+
+/* Conteneur des slides avec overflow hidden */
+.slides-wrapper {
+  overflow: hidden;
+}
+
+/* Styles pour les transitions de slides */
+.slide {
+  transition: transform 0.7s ease-in-out;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .nav-button {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .nav-button svg {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .indicators {
+    bottom: 30px;
+  }
+  
+  .indicator-wrapper {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .indicator-wrapper svg {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .indicator-wrapper svg circle {
+    cx: 20;
+    cy: 20;
+    r: 16;
+  }
+}
+
+/* Effet de hover sur les boutons */
+.nav-button {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.nav-button:hover {
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Amélioration de la lisibilité du texte */
+.slide h1,
+.slide p {
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Animation d'entrée pour le bouton CTA */
+.slide button {
+  animation-delay: 0.5s;
+}
