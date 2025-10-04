@@ -1,5 +1,3 @@
-# See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
-
 # Compiled output
 /dist
 /tmp
@@ -22,6 +20,7 @@ yarn-error.log
 
 # Visual Studio Code
 .vscode/*
+/.vscode
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
@@ -37,6 +36,9 @@ yarn-error.log
 testem.log
 /typings
 __screenshots__/
+
+#Claude
+/.claude/
 
 # System files
 .DS_Store
