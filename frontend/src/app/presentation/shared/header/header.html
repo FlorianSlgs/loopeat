@@ -1,4 +1,4 @@
-<header class="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm">
+<header class="fixed top-0 left-0 right-0 z-[1500] bg-white shadow-sm">
   <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex justify-between items-center h-24">
       <!-- Logo -->
@@ -10,39 +10,100 @@
         </a>
       </div>
 
-      <!-- Navigation Links and Buttons -->
+      <!-- Bouton Hamburger (visible sur mobile uniquement) -->
+      <button 
+        (click)="toggleMobileMenu()"
+        class="md:hidden flex flex-col justify-center items-center w-10 h-10 space-y-1.5 z-[1600] relative"
+        [class.active]="isMobileMenuOpen()"
+        aria-label="Menu"
+      >
+        <span 
+          class="block w-7 h-0.5 bg-emerald-800 transition-all duration-300 ease-in-out"
+          [class.rotate-45]="isMobileMenuOpen()"
+          [class.translate-y-2]="isMobileMenuOpen()"
+        ></span>
+        <span 
+          class="block w-7 h-0.5 bg-emerald-800 transition-all duration-300 ease-in-out"
+          [class.opacity-0]="isMobileMenuOpen()"
+          [class.opacity-100]="!isMobileMenuOpen()"
+        ></span>
+        <span 
+          class="block w-7 h-0.5 bg-emerald-800 transition-all duration-300 ease-in-out"
+          [class.-rotate-45]="isMobileMenuOpen()"
+          [class.-translate-y-2]="isMobileMenuOpen()"
+        ></span>
+      </button>
+
+      <!-- Navigation Desktop (masquée sur mobile) -->
       <div class="hidden md:flex items-center space-x-6">
-        <!-- Commerçants Link -->
-        <!-- Commerçants Link -->
-        <a href="#" class="group text-gray-700 hover:text-emerald-800 font-header text-lg font-bold  transition-all duration-300 ease-in-out">
-          <span class="bg-left-bottom bg-gradient-to-r from-emerald-800 to-emerald-800 bg-[length:0%_2px] bg-no-repeat group-hover:bg-[length:100%_2px] transition-all duration-500 ease-out">
-            Liste des commerçants
-          </span>
-        </a>
+          <a (click)="scrollToSection('commercants')" class="group text-gray-700 hover:text-emerald-800 font-header text-lg font-bold transition-all duration-300 ease-in-out cursor-pointer">
+            <span class="bg-left-bottom bg-gradient-to-r from-emerald-800 to-emerald-800 bg-[length:0%_2px] bg-no-repeat group-hover:bg-[length:100%_2px] transition-all duration-500 ease-out">
+              Liste des commerçants
+            </span>
+          </a>
 
-        <!-- Commerçants Link -->
-        <a href="#" class="group text-gray-700 hover:text-emerald-800 font-header text-lg font-bold  transition-all duration-300 ease-in-out">
-          <span class="bg-left-bottom bg-gradient-to-r from-emerald-800 to-emerald-800 bg-[length:0%_2px] bg-no-repeat group-hover:bg-[length:100%_2px] transition-all duration-500 ease-out">
-            Nous contacter
-          </span>
-        </a>
+          <a (click)="scrollToSection('contact')" class="group text-gray-700 hover:text-emerald-800 font-header text-lg font-bold transition-all duration-300 ease-in-out cursor-pointer">
+            <span class="bg-left-bottom bg-gradient-to-r from-emerald-800 to-emerald-800 bg-[length:0%_2px] bg-no-repeat group-hover:bg-[length:100%_2px] transition-all duration-500 ease-out">
+              Nous contacter
+            </span>
+          </a>
 
-        <!-- Se connecter Button -->
-        <button class="border-2 border-emerald-700 text-emerald-700 hover:text-white hover:bg-emerald-900 hover:border-emerald-900 hover:shadow-xl font-header text-lg font-bold px-6 py-2  hover:px-8 hover:py-3 rounded-full transition-all duration-400  flex items-center hover:scale-105 hover:cursor-pointer leading-[1.15]">
-          <span class="material-symbols-outlined mr-2">
-            restaurant
-          </span>
+        <button class="border-2 border-emerald-700 text-emerald-700 hover:text-white hover:bg-emerald-900 hover:border-emerald-900 hover:shadow-xl font-header text-lg font-bold px-6 py-2 hover:px-8 hover:py-3 rounded-full transition-all duration-400 flex items-center hover:scale-105 hover:cursor-pointer leading-[1.15]">
+          <span class="material-symbols-outlined mr-2">restaurant</span>
           Espace<br>pro
         </button>
 
-        <!-- Se connecter Button -->
         <button class="bg-yellow-400 text-emerald-800 font-header text-lg font-bold px-6 py-2 rounded-full transition-all duration-400 flex items-center hover:px-8 hover:py-3 hover:shadow-xl hover:cursor-pointer leading-[1.15]">
-          <span class="material-symbols-outlined mr-2">
-            account_circle
-          </span>
+          <span class="material-symbols-outlined mr-2">account_circle</span>
           Se connecter/<br>S'inscrire
         </button>
       </div>
     </div>
   </nav>
+
+  <!-- Menu Mobile (descend du haut) -->
+  <div 
+    class="md:hidden fixed left-0 right-0 bg-white shadow-lg transition-all duration-500 ease-in-out overflow-hidden z-[1400]"
+    [class.top-24]="isMobileMenuOpen()"
+    [class.max-h-screen]="isMobileMenuOpen()"
+    [class.opacity-100]="isMobileMenuOpen()"
+    [class.top-0]="!isMobileMenuOpen()"
+    [class.max-h-0]="!isMobileMenuOpen()"
+    [class.opacity-0]="!isMobileMenuOpen()"
+  >
+    <nav class="flex flex-col px-4 py-6 space-y-4">
+      <!-- Liens de navigation mobile -->
+      <a 
+        (click)="scrollToSection('commercants')"
+        class="text-gray-700 hover:text-emerald-800 font-header text-lg font-bold py-3 border-b border-gray-200 transition-colors duration-300 cursor-pointer"
+      >
+        Liste des commerçants
+      </a>
+
+      <a 
+        (click)="scrollToSection('contact')"
+        class="text-gray-700 hover:text-emerald-800 font-header text-lg font-bold py-3 border-b border-gray-200 transition-colors duration-300 cursor-pointer"
+      >
+        Nous contacter
+      </a>
+
+      <!-- Boutons mobile -->
+      <button 
+        (click)="closeMobileMenu()"
+        class="border-2 border-emerald-700 text-emerald-700 hover:text-white hover:bg-emerald-900 hover:border-emerald-900 font-header text-lg font-bold px-6 py-3 rounded-full transition-all duration-400 flex items-center justify-center mt-4"
+      >
+        <span class="material-symbols-outlined mr-2">restaurant</span>
+        Espace pro
+      </button>
+
+      <button 
+        (click)="closeMobileMenu()"
+        class="bg-yellow-400 text-emerald-800 font-header text-lg font-bold px-6 py-3 rounded-full transition-all duration-400 flex items-center justify-center hover:shadow-xl"
+      >
+        <span class="material-symbols-outlined mr-2">account_circle</span>
+        Se connecter / S'inscrire
+      </button>
+    </nav>
+  </div>
+
 </header>

@@ -115,3 +115,7 @@
 .slide button {
   animation-delay: 0.5s;
 }
+
+.leaflet-control{
+  margin-top:20px !important;
+}

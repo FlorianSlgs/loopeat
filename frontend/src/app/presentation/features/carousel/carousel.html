@@ -1,4 +1,4 @@
-<div class="carousel-container relative w-full h-[500px] overflow-hidden mt-24">
+<div class="carousel-container relative w-full h-[400px] sm:h-[500px] overflow-hidden mt-24">
   
   <!-- Slides -->
   <div class="slides-wrapper relative w-full h-full">
@@ -15,13 +15,25 @@
         
         <!-- Contenu -->
         <div class="relative z-20 h-full flex flex-col items-center justify-center text-white px-4">
-          <h1 class="text-2xl md:text-3xl lg:text-4xl font-bold text-center mb-12 max-w-4xl transition-all duration-700"
-              [class.opacity-100]="currentSlide === i"
-              [class.opacity-0]="currentSlide !== i"
-              [class.translate-y-0]="currentSlide === i"
-              [class.translate-y-10]="currentSlide !== i">
-            {{ slide.title }}
-          </h1>
+          
+          @if (i === 0) {
+            <h1 class="text-2xl md:text-3xl lg:text-4xl font-bold text-center mb-12 max-w-4xl transition-all duration-700"
+                [class.opacity-100]="currentSlide === i"
+                [class.opacity-0]="currentSlide !== i"
+                [class.translate-y-0]="currentSlide === i"
+                [class.translate-y-10]="currentSlide !== i">
+              {{ slide.title }}
+            </h1>
+          } @else {
+            <h2 class="text-2xl md:text-3xl lg:text-4xl font-bold text-center mb-12 max-w-4xl transition-all duration-700"
+                [class.opacity-100]="currentSlide === i"
+                [class.opacity-0]="currentSlide !== i"
+                [class.translate-y-0]="currentSlide === i"
+                [class.translate-y-10]="currentSlide !== i">
+              {{ slide.title }}
+            </h2>
+          }
+          
           <p class="font-bold text-lg md:text-xl lg:text-2xl text-center mb-8 max-w-3xl transition-all duration-700 delay-100"
             [class.opacity-100]="currentSlide === i"
             [class.opacity-0]="currentSlide !== i"
@@ -35,28 +47,30 @@
   </div>
 
   <!-- Boutons de navigation -->
-  <button (click)="previousSlide()"
-          class="nav-button absolute left-8 top-1/2 -translate-y-1/2 z-30 
-                 bg-yellow-400 hover:bg-yellow-500 text-emerald-800 w-12 h-12 
-                 rounded-full flex items-center justify-center transition-all 
-                 duration-300 transform hover:scale-110 hover:cursor-pointer">
-    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7" />
-    </svg>
-  </button>
+<button (click)="previousSlide()"
+        class="nav-button absolute left-8 top-1/2 -translate-y-1/2 z-30 
+               max-lg:left-4 max-lg:top-auto max-lg:bottom-12 max-lg:translate-y-0
+               bg-yellow-400 hover:bg-yellow-500 text-emerald-800 w-12 h-12 
+               rounded-full flex items-center justify-center transition-all 
+               duration-300 transform hover:scale-110 hover:cursor-pointer">
+  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7" />
+  </svg>
+</button>
 
-  <button (click)="nextSlide()"
-          class="nav-button absolute right-8 top-1/2 -translate-y-1/2 z-30 
-                 bg-yellow-400 hover:bg-yellow-500 text-emerald-800 w-12 h-12 
-                 rounded-full flex items-center justify-center transition-all 
-                 duration-300 transform hover:scale-110 hover:cursor-pointer">
-    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7" />
-    </svg>
-  </button>
+<button (click)="nextSlide()"
+        class="nav-button absolute right-8 top-1/2 -translate-y-1/2 z-30 
+               max-lg:right-4 max-lg:top-auto max-lg:bottom-12 max-lg:translate-y-0
+               bg-yellow-400 hover:bg-yellow-500 text-emerald-800 w-12 h-12 
+               rounded-full flex items-center justify-center transition-all 
+               duration-300 transform hover:scale-110 hover:cursor-pointer">
+  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7" />
+  </svg>
+</button>
 
 <!-- Indicateurs avec cercles animés -->
-<div class="indicators absolute bottom-12 left-1/2 -translate-x-1/2 z-30 flex gap-6">
+<div class="indicators absolute bottom-12 left-1/2 -translate-x-1/2 z-30 flex gap-6 max-lg:gap-3">
   @for (slide of slides; track slide.id; let i = $index) {
     <button (click)="goToSlide(i)"
             class="indicator-wrapper relative w-12 h-12 flex items-center justify-center hover:cursor-pointer">
@@ -85,5 +99,4 @@
       </span>
     </button>
   }
-</div>
 </div>

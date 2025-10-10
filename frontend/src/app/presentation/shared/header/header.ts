@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 
 @Component({
   selector: 'app-header',
@@ -7,21 +7,52 @@ import { Component } from '@angular/core';
   styleUrl: './header.css'
 })
 export class Header {
-  isExpertisesOpen = false;
-  isClientsOpen = false;
+  isMobileMenuOpen = signal(false);
+  isExpertisesOpen = signal(false);
+  isClientsOpen = signal(false);
+
+  toggleMobileMenu() {
+    this.isMobileMenuOpen.update(value => !value);
+    if (this.isMobileMenuOpen()) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+  }
+
+  closeMobileMenu() {
+    this.isMobileMenuOpen.set(false);
+    document.body.style.overflow = 'auto';
+  }
+
+  scrollToSection(sectionId: string) {
+    this.closeMobileMenu(); // Ferme le menu mobile si ouvert
+    
+    const element = document.getElementById(sectionId);
+    if (element) {
+      const headerOffset = 96; // Hauteur de votre header (h-24 = 96px)
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  }
 
   toggleExpertises() {
-    this.isExpertisesOpen = !this.isExpertisesOpen;
-    this.isClientsOpen = false;
+    this.isExpertisesOpen.update(value => !value);
+    this.isClientsOpen.set(false);
   }
 
   toggleClients() {
-    this.isClientsOpen = !this.isClientsOpen;
-    this.isExpertisesOpen = false;
+    this.isClientsOpen.update(value => !value);
+    this.isExpertisesOpen.set(false);
   }
 
   closeMenus() {
-    this.isExpertisesOpen = false;
-    this.isClientsOpen = false;
+    this.isExpertisesOpen.set(false);
+    this.isClientsOpen.set(false);
   }
 }

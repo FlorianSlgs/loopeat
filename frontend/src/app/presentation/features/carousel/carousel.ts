@@ -37,7 +37,7 @@ export class Carousel implements OnInit, OnDestroy {
     },
     {
       id: 2,
-      title: 'Rejoignez la communauté loop eat',
+      title: 'Rejoignez la communauté loopeat',
       subtitle: 'Choisir loop eat, c’est soutenir vos commerçants et dire oui à une consommation plus durable. Ensemble, faisons de l’emballage jetable un souvenir du passé !',
       backgroundImage: 'slide3.png'
     }
