@@ -1,0 +1,25 @@
+# syntax=docker/dockerfile:1
+ARG NODE_VERSION=22.20.0
+
+FROM node:${NODE_VERSION}-alpine
+
+# Installer les dépendances système nécessaires pour Angular
+RUN apk add --no-cache git
+
+# Définir le répertoire de travail
+WORKDIR /usr/src/app
+
+# Copier les fichiers de dépendances
+COPY package*.json ./
+
+# Installer TOUTES les dépendances (dev + prod)
+RUN npm ci
+
+# Copier le reste du code (sera overridé par le volume en dev)
+COPY . .
+
+# Exposer les ports (4200 pour Angular, 4000 pour SSR)
+EXPOSE 4200 4000
+
+# Utiliser ng serve pour le hot-reload
+CMD ["npm", "run", "start"]

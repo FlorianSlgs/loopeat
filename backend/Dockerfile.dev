@@ -1,0 +1,25 @@
+# syntax=docker/dockerfile:1
+ARG NODE_VERSION=22.20.0
+
+FROM node:${NODE_VERSION}-alpine
+
+# Installer nodemon globalement pour le hot-reload
+RUN npm install -g nodemon
+
+# Définir le répertoire de travail
+WORKDIR /usr/src/app
+
+# Copier les fichiers de dépendances
+COPY package*.json ./
+
+# Installer TOUTES les dépendances (dev + prod)
+RUN npm ci
+
+# Copier le reste du code (sera overridé par le volume en dev)
+COPY . .
+
+# Exposer le port
+EXPOSE 3000
+
+# Utiliser nodemon pour le hot-reload
+CMD ["nodemon", "--legacy-watch", "index.js"]

@@ -3,11 +3,14 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
+    "start": "ng serve --host 0.0.0.0 --port 4200",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "serve:ssr:loop-eat": "node dist/loop-eat/server/server.mjs"
+    "serve:ssr:loop-eat": "node dist/loop-eat/server/server.mjs",
+    "docker:build:dev": "docker build -f Dockerfile.dev -t frontend-angular-dev .",
+    "docker:build:prod": "docker build -f Dockerfile -t frontend-angular-prod .",
+    "docker:dev": "docker run -p 4200:4200 -v %cd%:/usr/src/app -v /usr/src/app/node_modules --name frontend-angular-dev frontend-angular-dev"
   },
   "prettier": {
     "printWidth": 100,
