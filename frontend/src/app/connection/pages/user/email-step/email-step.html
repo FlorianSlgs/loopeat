@@ -1,0 +1,42 @@
+<app-header></app-header>
+
+<div class="flex items-center justify-center py-8 px-4">
+  <div class="w-92 max-w-md space-y-6">
+    <!-- Titre -->
+    <p class="text-2xl md:text-3xl font-normal text-center text-gray-900">
+      Indiquez votre adresse email
+    </p>
+    
+    <!-- Formulaire -->
+    <form [formGroup]="loginForm" (ngSubmit)="handleSubmit()" class="space-y-4">
+      <!-- Input field -->
+      <div>
+        <input
+          type="text"
+          formControlName="email"
+          placeholder="Saisissez une adresse email"
+          class="w-92 px-4 py-3 bg-gray-100 border-0 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all"
+          [class.border-red-500]="isFieldInvalid()"
+          [class.ring-2]="isFieldInvalid()"
+          [class.ring-red-500]="isFieldInvalid()"
+        />
+      </div>
+      
+      <!-- Message d'erreur -->
+      @if (isFieldInvalid()) {
+        <p class="text-red-500 text-sm mt-1">
+          Veuillez saisir une adresse email valide.
+        </p>
+      }
+      
+      <!-- Bouton Continuer -->
+      <button
+        type="submit"
+        [disabled]="!loginForm.valid || isSubmitting()"
+        [class]="getButtonClasses()"
+      >
+        {{ isSubmitting() ? 'Traitement...' : 'Continuer' }}
+      </button>
+    </form>
+  </div>
+</div>

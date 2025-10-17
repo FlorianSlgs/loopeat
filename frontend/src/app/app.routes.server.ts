@@ -7,7 +7,11 @@ export const serverRoutes: ServerRoute[] = [
   },
   {
     path: 'connexion',
-    renderMode: RenderMode.Server,
+    renderMode: RenderMode.Client,
+  },
+  {
+    path: 'connexion/**',
+    renderMode: RenderMode.Client,
   },
   {
     path: '**',

@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { User } from './user';
+import { EmailStep } from './email-step';
 
-describe('User', () => {
-  let component: User;
-  let fixture: ComponentFixture<User>;
+describe('EmailStep', () => {
+  let component: EmailStep;
+  let fixture: ComponentFixture<EmailStep>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [User]
+      imports: [EmailStep]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(User);
+    fixture = TestBed.createComponent(EmailStep);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

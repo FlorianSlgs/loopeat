@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { Pro } from './pro';
+import { PasswordStep } from './password-step';
 
-describe('Pro', () => {
-  let component: Pro;
-  let fixture: ComponentFixture<Pro>;
+describe('PasswordStep', () => {
+  let component: PasswordStep;
+  let fixture: ComponentFixture<PasswordStep>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Pro]
+      imports: [PasswordStep]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(Pro);
+    fixture = TestBed.createComponent(PasswordStep);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
