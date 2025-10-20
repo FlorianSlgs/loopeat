@@ -86,16 +86,29 @@ export class EmailStep implements OnInit {
 
         const basePath = isPro ? '/connexion-pro' : '/connexion';
 
-        if (response.exists && response.requirePassword) {
-          console.log('🔒 Navigation vers mot-de-passe (utilisateur existant)');
+        // 🆕 CAS 1 : Utilisateur existant avec mot de passe → Connexion
+        if (response.exists && response.verified && response.requirePassword) {
+          console.log('🔑 Navigation vers mot-de-passe (utilisateur existant vérifié)');
           this.router.navigate([`${basePath}/mot-de-passe`]);
-        } 
-        else if (!response.exists && response.requireVerification) {
-          console.log('📨 Navigation vers verification');
+        }
+        // 🆕 CAS 2 : Utilisateur existe mais email non vérifié → Renvoyer code
+        else if (response.exists && !response.verified && response.requireVerification) {
+          console.log('🔄 Inscription incomplète détectée - Renvoi du code de vérification');
           this.router.navigate([`${basePath}/verification`]);
-        } 
+        }
+        // 🆕 CAS 3 : Nouvel utilisateur → Vérification
+        else if (!response.exists && response.requireVerification) {
+          console.log('📨 Nouvel utilisateur - Navigation vers vérification');
+          this.router.navigate([`${basePath}/verification`]);
+        }
+        // 🆕 CAS 4 : Inscription incomplète avec vérification requise
+        else if (response.exists && response.requireVerification) {
+          console.log('🔄 Inscription en cours - Navigation vers vérification');
+          this.router.navigate([`${basePath}/verification`]);
+        }
         else {
-          console.log('⚠️ Aucune navigation déclenchée');
+          console.log('⚠️ Cas non géré:', response);
+          this.errorMessage.set('État inattendu. Veuillez réessayer.');
         }
         
         this.isSubmitting.set(false);

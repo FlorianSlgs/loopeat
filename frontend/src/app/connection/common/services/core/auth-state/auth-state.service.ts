@@ -1,4 +1,3 @@
-// auth-state.service.ts
 import { Injectable, signal } from '@angular/core';
 
 @Injectable({
@@ -12,7 +11,8 @@ export class AuthStateService {
   private firstName = signal<string>('');
   private lastName = signal<string>('');
   private isPro = signal<boolean>(false);
-  
+  private currentUser = signal<any>(null);
+
   // Getters en lecture seule
   getCurrentEmail = this.currentEmail.asReadonly();
   getUserExists = this.userExists.asReadonly();
@@ -21,6 +21,7 @@ export class AuthStateService {
   getFirstName = this.firstName.asReadonly();
   getLastName = this.lastName.asReadonly();
   getIsPro = this.isPro.asReadonly();
+  getCurrentUser = this.currentUser.asReadonly();
 
   setEmailCheckResult(
     email: string, 
@@ -41,6 +42,20 @@ export class AuthStateService {
     this.lastName.set(lastName);
   }
 
+  setUser(user: any) {
+    this.currentUser.set(user);
+    if (user) {
+      this.currentEmail.set(user.email || '');
+      this.isPro.set(user.isPro || false);
+      if (user.firstName) {
+        this.firstName.set(user.firstName);
+      }
+      if (user.lastName) {
+        this.lastName.set(user.lastName);
+      }
+    }
+  }
+
   clearState() {
     this.currentEmail.set('');
     this.userExists.set(false);
@@ -49,5 +64,6 @@ export class AuthStateService {
     this.firstName.set('');
     this.lastName.set('');
     this.isPro.set(false);
+    this.currentUser.set(null);
   }
 }

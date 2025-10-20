@@ -1,7 +1,7 @@
 // password-step.ts
 import { Component, ChangeDetectionStrategy, signal, inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { Header } from '../../features/header/header';
 import { Auth } from '../../../common/services/core/auth/auth.service';
 import { AuthStateService } from '../../../common/services/core/auth-state/auth-state.service';
@@ -17,6 +17,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 export class PasswordStep implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly authService = inject(Auth);
   private readonly authStateService = inject(AuthStateService);
 
@@ -24,6 +25,7 @@ export class PasswordStep implements OnInit {
   isSubmitting = signal(false);
   showPassword = signal(false);
   errorMessage = signal<string>('');
+  isPro = signal(false);
 
   constructor() {
     this.passwordForm = this.fb.group({
@@ -39,14 +41,18 @@ export class PasswordStep implements OnInit {
   }
 
   ngOnInit(): void {
-    // Vérifier qu'on a bien les informations nécessaires
+    // 🆕 Vérifier qu'on a bien un email en mémoire
     const email = this.authStateService.getCurrentEmail();
-    const firstName = this.authStateService.getFirstName();
+    const isPro = this.authStateService.getIsPro();
     
-    if (!email || !firstName) {
-      console.warn('⚠️ Informations manquantes, redirection vers /connexion/nom');
-      this.router.navigate(['/connexion/nom']);
+    if (!email) {
+      console.warn('⚠️ Pas d\'email en mémoire, redirection vers /connexion');
+      this.router.navigate([isPro ? '/connexion-pro' : '/connexion']);
+      return;
     }
+
+    this.isPro.set(isPro);
+    console.log('🔐 Password Step - Mode:', isPro ? 'PRO' : 'USER');
   }
 
   // Validateur personnalisé pour la force du mot de passe
@@ -88,7 +94,10 @@ export class PasswordStep implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/connexion/nom']);
+    // 🆕 Navigation dynamique en fonction du mode
+    const basePath = this.isPro() ? '/connexion-pro' : '/connexion';
+    console.log('⬅️ Retour vers:', `${basePath}/nom`);
+    this.router.navigate([`${basePath}/nom`]);
   }
 
   goNext(): void {
@@ -104,11 +113,13 @@ export class PasswordStep implements OnInit {
     this.errorMessage.set('');
     
     const { password } = this.passwordForm.value;
+    const isPro = this.isPro();
     
-    console.log('🔐 Définition du mot de passe');
+    console.log('🔒 Définition du mot de passe');
+    console.log('🏢 Mode:', isPro ? 'PRO' : 'USER');
     
     // Appeler l'API pour définir le mot de passe
-    this.authService.setPassword(password).subscribe({
+    this.authService.setPassword(password, isPro).subscribe({
       next: (response) => {
         console.log('✅ Mot de passe défini:', response);
         this.isSubmitting.set(false);
@@ -120,8 +131,14 @@ export class PasswordStep implements OnInit {
           // Nettoyer le state
           this.authStateService.clearState();
           
-          // Rediriger vers la page d'accueil ou le dashboard
-          this.router.navigate(['/utilisateurs']); // Ajustez selon votre routing
+          // 🆕 Redirection dynamique en fonction du mode
+          if (isPro) {
+            console.log('➡️ Redirection vers /pro');
+            this.router.navigate(['/pro']);
+          } else {
+            console.log('➡️ Redirection vers /utilisateurs');
+            this.router.navigate(['/utilisateurs']);
+          }
         } else {
           this.errorMessage.set(response.message || 'Erreur lors de la définition du mot de passe');
         }

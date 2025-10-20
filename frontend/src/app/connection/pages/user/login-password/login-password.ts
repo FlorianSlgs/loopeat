@@ -1,7 +1,7 @@
 // login-password.ts
-import { Component, ChangeDetectionStrategy, signal, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal, inject, OnInit } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { Header } from '../../features/header/header';
 import { Auth } from '../../../common/services/core/auth/auth.service';
 import { AuthStateService } from '../../../common/services/core/auth-state/auth-state.service';
@@ -14,9 +14,10 @@ import { HttpErrorResponse } from '@angular/common/http';
   styleUrl: './login-password.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class LoginPassword {
+export class LoginPassword implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly authService = inject(Auth);
   private readonly authStateService = inject(AuthStateService);
 
@@ -25,11 +26,30 @@ export class LoginPassword {
   showPassword = signal(false);
   errorMessage = signal<string>('');
   userEmail = signal<string>('');
+  isPro = signal(false); // 🆕 Ajouter isPro
 
   constructor() {
     this.passwordForm = this.fb.group({
       password: ['', [Validators.required]]
     });
+  }
+
+  ngOnInit(): void {
+    // 🆕 Récupérer l'email et isPro depuis authState
+    const email = this.authStateService.getCurrentEmail();
+    const isPro = this.authStateService.getIsPro();
+    
+    if (!email) {
+      console.warn('⚠️ Pas d\'email en mémoire, redirection vers /connexion');
+      this.router.navigate([isPro ? '/connexion-pro' : '/connexion']);
+      return;
+    }
+
+    this.userEmail.set(email);
+    this.isPro.set(isPro);
+    
+    console.log('🔐 Login Password - Email:', email);
+    console.log('🔐 Login Password - Mode:', isPro ? 'PRO' : 'USER');
   }
 
   isFieldInvalid(): boolean {
@@ -42,7 +62,9 @@ export class LoginPassword {
   }
 
   goBack(): void {
-    this.router.navigate(['/connexion']);
+    // 🆕 Navigation dynamique
+    const basePath = this.isPro() ? '/connexion-pro' : '/connexion';
+    this.router.navigate([basePath]);
   }
 
   getButtonClasses(): string {
@@ -67,9 +89,10 @@ export class LoginPassword {
     const { password } = this.passwordForm.value;
     
     console.log('🔐 Tentative de connexion avec mot de passe');
+    console.log('🏢 Mode:', this.isPro() ? 'PRO' : 'USER');
     
     // Envoyer uniquement le mot de passe, le cookie contient l'email
-    this.authService.loginWithPassword(password).subscribe({
+    this.authService.loginWithPassword(password, this.isPro()).subscribe({
       next: (response) => {
         console.log('✅ Connexion réussie:', response);
         this.isSubmitting.set(false);
@@ -77,11 +100,23 @@ export class LoginPassword {
         if (response.success) {
           console.log('🎉 Utilisateur connecté');
           
+          // 🆕 Récupérer isPro depuis la réponse du backend
+          const isPro = response.user?.isPro || this.isPro();
+          
+          console.log('👤 User:', response.user);
+          console.log('🏢 isPro final:', isPro);
+          
           // Nettoyer le state
           this.authStateService.clearState();
           
-          // Rediriger vers le dashboard
-          this.router.navigate(['/utilisateurs']);
+          // 🆕 Redirection dynamique en fonction du mode
+          if (isPro) {
+            console.log('➡️ Redirection vers /pro');
+            this.router.navigate(['/pro']);
+          } else {
+            console.log('➡️ Redirection vers /utilisateurs');
+            this.router.navigate(['/utilisateurs']);
+          }
         } else {
           this.errorMessage.set(response.message || 'Erreur lors de la connexion');
         }

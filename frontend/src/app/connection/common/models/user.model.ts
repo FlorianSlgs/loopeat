@@ -1,4 +1,3 @@
-// user.model.ts
 export interface User {
   id?: number;
   email: string;
@@ -19,11 +18,5 @@ export interface CheckEmailResponse {
 export interface VerifyCodeResponse {
   success: boolean;
   verified: boolean;
-  message: string;
-}
-
-export interface CompleteRegistrationResponse {
-  success: boolean;
-  user: User;
   message: string;
 }

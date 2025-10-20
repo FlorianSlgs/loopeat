@@ -7,7 +7,7 @@ import { AuthInitService } from '../../../connection/common/services/core/auth-i
   templateUrl: './test.html',
   styleUrl: './test.css'
 })
-export class Test {
+export class Test1 {
   private readonly authInitService = inject(AuthInitService);
 
   currentUser = this.authInitService.getCurrentUser();
