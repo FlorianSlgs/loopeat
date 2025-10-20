@@ -22,4 +22,4 @@ COPY . .
 EXPOSE 3000
 
 # Utiliser nodemon pour le hot-reload
-CMD ["nodemon", "--legacy-watch", "index.js"]
+CMD ["nodemon", "--legacy-watch"]

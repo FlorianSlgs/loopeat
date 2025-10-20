@@ -1,8 +1,13 @@
 <header class="top-0 left-0 right-0 z-[1500] flex justify-center items-center">
   <!-- Logo -->
   <a href="/" class="mt-2 flex items-center">
-    <div class="flex items-center">
+    <div class="flex items-center space-x-2">
       <img src="logo.jpg" alt="logo loop-eat" class="h-22 w-auto">
+      @if (isPro()) {
+        <span class="text-sm font-medium text-gray-700 bg-gray-100 px-3 py-1 rounded-full">
+          Espace Pro
+        </span>
+      }
     </div>
   </a>
 </header>

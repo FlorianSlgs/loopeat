@@ -1,7 +1,11 @@
-import { Component, ChangeDetectionStrategy, signal, inject } from '@angular/core';
+// email-step.ts
+import { Component, ChangeDetectionStrategy, signal, inject, OnInit } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { Header } from '../../features/header/header';
+import { Auth } from '../../../common/services/core/auth/auth.service';
+import { AuthStateService } from '../../../common/services/core/auth-state/auth-state.service';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-email-step',
@@ -10,19 +14,26 @@ import { Header } from '../../features/header/header';
   styleUrl: './email-step.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class EmailStep {
+export class EmailStep implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  private readonly authService = inject(Auth);
+  private readonly authStateService = inject(AuthStateService);
   
   isSubmitting = signal(false);
   submitAttempted = signal(false);
+  errorMessage = signal<string>('');
+  isPro = signal(false);
   
-  // Formulaire simple avec Validators.email
   loginForm: FormGroup = this.fb.group({
     email: ['', [Validators.required, Validators.email]]
   });
+
+  ngOnInit(): void {
+    this.isPro.set(this.route.snapshot.data['isPro'] || false);
+  }
   
-  // Simplified computed
   isFieldInvalid() {
     const control = this.loginForm.get('email');
     return !!(control?.invalid && (control?.touched || this.submitAttempted()));
@@ -36,29 +47,74 @@ export class EmailStep {
     const baseClasses = 'w-92 font-medium py-4 px-6 rounded-lg transition-all duration-200 text-lg';
     
     if (!this.loginForm.valid || this.isSubmitting()) {
-      // État désactivé : gris, pas de pointer, opacité réduite
       return `${baseClasses} bg-gray-300 text-gray-500 cursor-not-allowed opacity-60`;
     }
     
-    // État actif : noir, pointer au survol, effet hover
     return `${baseClasses} bg-black text-white cursor-pointer hover:bg-gray-800 active:scale-98`;
   }
   
   handleSubmit(): void {
-    console.log('Submit clicked!');
-    console.log('Form valid?', this.loginForm.valid);
-    console.log('Form value:', this.loginForm.value);
+    console.log('🚀 === DÉBUT HANDLESUBMIT ===');
     
     this.submitAttempted.set(true);
+    this.errorMessage.set('');
     
-    if (this.loginForm.valid) {
-      this.isSubmitting.set(true);
-      const value = this.loginForm.get('email')?.value;
-      
-      setTimeout(() => {
-        console.log('Valeur soumise:', value);
-        this.isSubmitting.set(false);
-      }, 1500);
+    if (!this.loginForm.valid) {
+      console.log('❌ Formulaire invalide');
+      return;
     }
+
+    this.isSubmitting.set(true);
+    const email = this.loginForm.get('email')?.value;
+    const isPro = this.isPro();
+    
+    console.log('📧 Email extrait:', email);
+    console.log('🏢 Mode Pro:', isPro);
+    
+    this.authService.checkEmail(email, isPro).subscribe({
+      next: (response) => {
+        console.log('✅ === RÉPONSE REÇUE ===');
+        console.log('📦 Réponse complète:', response);
+        
+        this.authStateService.setEmailCheckResult(
+          email,
+          response.exists,
+          response.requirePassword || false,
+          response.requireVerification || false,
+          isPro
+        );
+
+        const basePath = isPro ? '/connexion-pro' : '/connexion';
+
+        if (response.exists && response.requirePassword) {
+          console.log('🔒 Navigation vers mot-de-passe (utilisateur existant)');
+          this.router.navigate([`${basePath}/mot-de-passe`]);
+        } 
+        else if (!response.exists && response.requireVerification) {
+          console.log('📨 Navigation vers verification');
+          this.router.navigate([`${basePath}/verification`]);
+        } 
+        else {
+          console.log('⚠️ Aucune navigation déclenchée');
+        }
+        
+        this.isSubmitting.set(false);
+      },
+      error: (error: HttpErrorResponse) => {
+        console.error('❌ === ERREUR DÉTECTÉE ===');
+        console.error('📦 Erreur complète:', error);
+        
+        let errorMsg = 'Une erreur est survenue. Veuillez réessayer.';
+        
+        if (error.error && typeof error.error === 'object') {
+          errorMsg = error.error.message || errorMsg;
+        } else if (error.error && typeof error.error === 'string') {
+          errorMsg = error.error;
+        }
+        
+        this.errorMessage.set(errorMsg);
+        this.isSubmitting.set(false);
+      }
+    });
   }
 }
