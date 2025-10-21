@@ -18,13 +18,14 @@ import { PasswordStep } from './connection/pages/user/password-step/password-ste
 import { LoginPassword } from './connection/pages/user/login-password/login-password';
 
 import { globalGuard } from './global-guard';
+import { connectionRedirectGuard } from './connection-redirect.guard';
 
 export const routes: Routes = [
   { path: '', component: Accueil },
 
-  { 
-    path: 'utilisateurs', 
-    component: UsersHome, 
+  {
+    path: 'utilisateurs',
+    component: UsersHome,
     canActivate: [globalGuard],
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
@@ -40,6 +41,7 @@ export const routes: Routes = [
 
   {
     path: 'connexion',
+    canActivate: [connectionRedirectGuard],
     children: [
       { path: '', component: EmailStep },
       { path: 'mot-de-passe', component: LoginPassword },
@@ -50,6 +52,7 @@ export const routes: Routes = [
   },
   {
     path: 'connexion-pro',
+    canActivate: [connectionRedirectGuard],
     children: [
       { path: '', component: EmailStep, data: { isPro: true } },
       { path: 'mot-de-passe', component: LoginPassword, data: { isPro: true } },

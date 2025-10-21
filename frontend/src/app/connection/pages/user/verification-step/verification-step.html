@@ -66,7 +66,7 @@
   <div class="flex justify-between items-center w-full max-w-xs mt-8">
     <button
       type="button"
-      class="flex items-center px-4 py-2 text-gray-700 rounded-lg hover:bg-gray-100 transition disabled:opacity-50"
+      class="flex items-center px-4 py-2 text-gray-700 rounded-lg hover:bg-gray-100 transition disabled:opacity-50 hover:curser-pointer"
       [disabled]="isVerifying()"
       (click)="goBack()"
     >
@@ -75,7 +75,7 @@
 
     <button
       type="button"
-      class="flex items-center px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+      class="flex items-center px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed hover:curser-pointer"
       [disabled]="!isCodeComplete() || isVerifying()"
       (click)="goNext()"
     >
