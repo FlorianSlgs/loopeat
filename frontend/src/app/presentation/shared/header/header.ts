@@ -1,4 +1,5 @@
 import { Component, signal } from '@angular/core';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-header',
@@ -10,6 +11,8 @@ export class Header {
   isMobileMenuOpen = signal(false);
   isExpertisesOpen = signal(false);
   isClientsOpen = signal(false);
+
+  constructor(private router: Router) {}
 
   toggleMobileMenu() {
     this.isMobileMenuOpen.update(value => !value);
@@ -26,11 +29,11 @@ export class Header {
   }
 
   scrollToSection(sectionId: string) {
-    this.closeMobileMenu(); // Ferme le menu mobile si ouvert
+    this.closeMobileMenu();
     
     const element = document.getElementById(sectionId);
     if (element) {
-      const headerOffset = 96; // Hauteur de votre header (h-24 = 96px)
+      const headerOffset = 96;
       const elementPosition = element.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
 
@@ -39,6 +42,16 @@ export class Header {
         behavior: 'smooth'
       });
     }
+  }
+
+  navigateToLogin() {
+    this.closeMobileMenu();
+    this.router.navigate(['/connexion']);
+  }
+
+  navigateToPro() {
+    this.closeMobileMenu();
+    this.router.navigate(['/connexion-pro']);
   }
 
   toggleExpertises() {

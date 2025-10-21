@@ -48,15 +48,19 @@
             </span>
           </a>
 
-        <button class="border-2 border-emerald-700 text-emerald-700 hover:text-white hover:bg-emerald-900 hover:border-emerald-900 hover:shadow-xl font-header text-lg font-bold px-6 py-2 hover:px-8 hover:py-3 rounded-full transition-all duration-400 flex items-center hover:scale-105 hover:cursor-pointer leading-[1.15]">
-          <span class="material-symbols-outlined mr-2">restaurant</span>
-          Espace<br>pro
-        </button>
+          <button 
+            (click)="navigateToPro()"
+            class="border-2 border-emerald-700 text-emerald-700 hover:text-white hover:bg-emerald-900 hover:border-emerald-900 hover:shadow-xl font-header text-lg font-bold px-6 py-2 hover:px-8 hover:py-3 rounded-full transition-all duration-400 flex items-center hover:scale-105 hover:cursor-pointer leading-[1.15]">
+            <span class="material-symbols-outlined mr-2">restaurant</span>
+            Espace<br>pro
+          </button>
 
-        <button class="bg-yellow-400 text-emerald-800 font-header text-lg font-bold px-6 py-2 rounded-full transition-all duration-400 flex items-center hover:px-8 hover:py-3 hover:shadow-xl hover:cursor-pointer leading-[1.15]">
-          <span class="material-symbols-outlined mr-2">account_circle</span>
-          Se connecter/<br>S'inscrire
-        </button>
+          <button 
+            (click)="navigateToLogin()"
+            class="bg-yellow-400 text-emerald-800 font-header text-lg font-bold px-6 py-2 rounded-full transition-all duration-400 flex items-center hover:px-8 hover:py-3 hover:shadow-xl hover:cursor-pointer leading-[1.15]">
+            <span class="material-symbols-outlined mr-2">account_circle</span>
+            Se connecter/<br>S'inscrire
+          </button>
       </div>
     </div>
   </nav>
@@ -89,17 +93,15 @@
 
       <!-- Boutons mobile -->
       <button 
-        (click)="closeMobileMenu()"
-        class="border-2 border-emerald-700 text-emerald-700 hover:text-white hover:bg-emerald-900 hover:border-emerald-900 font-header text-lg font-bold px-6 py-3 rounded-full transition-all duration-400 flex items-center justify-center mt-4 cursor-pointer"
-      >
+        (click)="navigateToPro()"
+        class="border-2 border-emerald-700 text-emerald-700 hover:text-white hover:bg-emerald-900 hover:border-emerald-900 font-header text-lg font-bold px-6 py-3 rounded-full transition-all duration-400 flex items-center justify-center mt-4 cursor-pointer">
         <span class="material-symbols-outlined mr-2">restaurant</span>
         Espace pro
       </button>
 
       <button 
-        (click)="closeMobileMenu()"
-        class="bg-yellow-400 text-emerald-800 font-header text-lg font-bold px-6 py-3 rounded-full transition-all duration-400 flex items-center justify-center hover:shadow-xl cursor-pointer"
-      >
+        (click)="navigateToLogin()"
+        class="bg-yellow-400 text-emerald-800 font-header text-lg font-bold px-6 py-3 rounded-full transition-all duration-400 flex items-center justify-center hover:shadow-xl cursor-pointer">
         <span class="material-symbols-outlined mr-2">account_circle</span>
         Se connecter / S'inscrire
       </button>

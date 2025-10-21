@@ -2,7 +2,9 @@ import { Routes } from '@angular/router';
 
 import { Accueil } from './presentation/pages/accueil/accueil';
 
-import { Test } from './apps/users/test/test';
+import { UsersHome } from './apps/users/pages/users-home/users-home';
+import { Dashboard } from './apps/users/pages/dashboard/dashboard';
+import { Historical } from './apps/users/pages/historical/historical';
 
 import { Test1 } from './apps/pro/test/test';
 
@@ -19,7 +21,16 @@ import { globalGuard } from './global-guard';
 export const routes: Routes = [
   { path: '', component: Accueil },
 
-  { path: 'utilisateurs', component: Test, canActivate: [globalGuard] },
+  { 
+    path: 'utilisateurs', 
+    component: UsersHome, 
+    canActivate: [globalGuard],
+    children: [
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      { path: 'dashboard', component: Dashboard },
+      { path: 'historique', component: Historical }
+    ]
+  },
 
   { path: 'pro', component: Test1, canActivate: [globalGuard] },
 
