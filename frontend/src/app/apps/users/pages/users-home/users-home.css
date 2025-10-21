@@ -1,0 +1,19 @@
+/* Navigation active state */
+.nav-item.active {
+  background-color: rgb(238, 255, 246);
+  color: #064e3b;
+}
+
+.nav-item.active svg {
+  stroke: #064e3b;
+}
+
+/* Ensure footer stays at bottom */
+footer {
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Main content adjustment to account for fixed footer */
+main {
+  padding-bottom: 5rem;
+}
