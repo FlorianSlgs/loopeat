@@ -6,6 +6,7 @@ import { UsersHome } from './apps/users/pages/users-home/users-home';
 import { Dashboard } from './apps/users/pages/dashboard/dashboard';
 import { Historical } from './apps/users/pages/historical/historical';
 import { Boxes } from './apps/users/pages/boxes/boxes';
+import { Settings } from './apps/users/pages/settings/settings';
 
 import { Test1 } from './apps/pro/test/test';
 
@@ -31,7 +32,8 @@ export const routes: Routes = [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: Dashboard },
       { path: 'historique', component: Historical },
-      { path: 'boites', component: Boxes }
+      { path: 'boites', component: Boxes },
+      { path: 'parametres', component: Settings }
     ]
   },
 

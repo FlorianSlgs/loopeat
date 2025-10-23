@@ -1,7 +1,6 @@
 // users-home.ts
 import { Component, inject } from '@angular/core';
-import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
-import { AuthInitService } from '../../../../connection/common/services/core/auth-init/auth-init.service';
+import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
 
 @Component({
   selector: 'app-users-home',
@@ -10,11 +9,17 @@ import { AuthInitService } from '../../../../connection/common/services/core/aut
   styleUrl: './users-home.css'
 })
 export class UsersHome {
-  private readonly authInitService = inject(AuthInitService);
+  private router = inject(Router);
 
-  currentUser = this.authInitService.getCurrentUser();
+  onSettingsClick() {
+    if (this.router.url.includes('/utilisateurs/parametres')) {
+      this.router.navigate(['/utilisateurs/dashboard']);
+    } else {
+      this.router.navigate(['/utilisateurs/parametres']);
+    }
+  }
 
-  async logout() {
-    await this.authInitService.logout();
+  isOnSettingsPage(): boolean {
+    return this.router.url.includes('/utilisateurs/parametres');
   }
 }

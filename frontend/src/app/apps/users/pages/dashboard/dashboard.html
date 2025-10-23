@@ -1,9 +1,9 @@
 <!-- dashboard.html -->
-<div class="h-full overflow-y-auto pt-22">
+<div class="h-full overflow-y-auto pt-23">
   <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
     
     <!-- Profil utilisateur -->
-    <div class="bg-gray-100 rounded-lg p-4 lg:p-8 mb-6 text-center w-fit mx-auto">
+    <div class="shadow-md bg-white rounded-sm p-4 lg:p-8 mb-6 text-center w-fit mx-auto border border-gray-100 hover:shadow-md hover:scale-105 ">
       <span class="material-symbols-outlined block mb-1" style="font-size: 30px;">
         account_circle
       </span>
@@ -12,7 +12,7 @@
     
     <div class="grid grid-cols-2 gap-6 mb-6">
       <!-- Solde -->
-      <div class="bg-gray-100 rounded-lg p-3 text-center relative">
+      <div class="shadow-md bg-white border border-gray-100 rounded-lg p-3 text-center relative hover:shadow-md hover:scale-105">
         <button class="absolute -top-1 -right-1 w-10 h-10 bg-emerald-50 border-1 border-emerald-900 rounded-full flex items-center justify-center text-emerald-900 font-bold text-xl hover:bg-gray-200 hover:cursor-pointer transition-colors">
           +
         </button>
@@ -21,18 +21,18 @@
       </div>
       
       <!-- Boîtes empruntées -->
-      <div class="bg-gray-100 rounded-lg p-3 text-center">
+      <div class="shadow-md bg-white border border-gray-100 rounded-lg p-3 text-center hover:shadow-md hover:scale-105">
         <p class="text-4xl font-bold text-gray-900 mb-2">3</p>
         <p class="text-md text-gray-600">Boîtes empruntées</p>
       </div>
     </div>
     
     <!-- Code Client -->
-    <div class="bg-gray-100 rounded-lg p-3 text-center mb-6">
+    <div class="shadow-md bg-white border border-gray-100 rounded-lg p-3 text-center mb-6 hover:shadow-md hover:scale-105">
       <p class="text-4xl font-bold text-gray-900 mb-2">1234</p>
       <p class="text-md text-gray-600">Code client</p>
     </div>
-  </div>
 
-  <app-dashboard-map></app-dashboard-map>
+    <app-dashboard-map></app-dashboard-map>
+  </div>
 </div>

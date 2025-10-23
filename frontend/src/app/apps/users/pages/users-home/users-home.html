@@ -15,8 +15,11 @@
 
         <!-- Settings Button -->
         <button 
-          (click)="logout()"
-          class="flex items-center justify-center w-11 h-11 rounded-lg text-gray-600 hover:bg-emerald-100 hover:text-emerald-600 hover:cursor-pointer transition-all duration-200"
+          (click)="onSettingsClick()"
+          [class.active]="isOnSettingsPage()"
+          routerLinkActive="active"
+          #settingsLink="routerLinkActive"
+          class="settings flex items-center justify-center w-11 h-11 rounded-lg text-gray-600 hover:bg-emerald-100 hover:text-emerald-600 hover:cursor-pointer transition-all duration-200"
           aria-label="Paramètres"
         >
           <svg class="w-9 h-9" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -35,7 +38,7 @@
 
   <!-- Footer Navigation -->
   <footer class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-[1005]">
-    <nav class="max-w-3xl mx-auto px-4">
+    <nav class="max-w-3xl mx-auto px-4 pb-3">
       <div class="flex justify-around items-center h-16">
         <a 
           routerLink="/utilisateurs/dashboard" 

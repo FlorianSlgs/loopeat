@@ -1,6 +1,6 @@
 # LoopEat
 
-LoopEat is a full-stack web application for discovering eco-friendly restaurants and food trucks in Montpellier, France. The platform features an interactive map interface that helps users locate sustainable dining options in their area.
+LoopEat is a full-stack web application that enables restaurants and food trucks in Montpellier, France, to manage a connected reusable container deposit system for takeaway meals.
 
 ## 🏗️ Architecture
 
