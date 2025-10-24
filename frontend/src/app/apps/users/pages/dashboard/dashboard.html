@@ -1,35 +1,69 @@
 <!-- dashboard.html -->
-<div class="h-full overflow-y-auto pt-23">
+<div class="h-full overflow-y-auto pt-23" (click)="handleClickOutside($event)">
   <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
     
     <!-- Profil utilisateur -->
-    <div class="shadow-md bg-white rounded-sm p-4 lg:p-8 mb-6 text-center w-fit mx-auto border border-gray-100 hover:shadow-md hover:scale-105 ">
+    <div class="shadow-md bg-white rounded-sm p-4 lg:p-8 mb-6 text-center w-fit mx-auto border border-gray-100 hover:shadow-md hover:scale-105 transition-all">
       <span class="material-symbols-outlined block mb-1" style="font-size: 30px;">
         account_circle
       </span>
-      <p class="text-xl font-bold text-gray-900">John Deer</p>
+      <p class="text-xl font-bold text-gray-900">{{ userName() }}</p>
     </div>
     
     <div class="grid grid-cols-2 gap-6 mb-6">
-      <!-- Solde -->
-      <div class="shadow-md bg-white border border-gray-100 rounded-lg p-3 text-center relative hover:shadow-md hover:scale-105">
-        <button class="absolute -top-1 -right-1 w-10 h-10 bg-emerald-50 border-1 border-emerald-900 rounded-full flex items-center justify-center text-emerald-900 font-bold text-xl hover:bg-gray-200 hover:cursor-pointer transition-colors">
-          +
+      <!-- Solde avec menu de rechargement -->
+      <div class="recharge-container shadow-md bg-white border border-gray-100 rounded-lg p-3 text-center relative hover:shadow-md hover:scale-105 transition-all z-[1003]">
+        
+        <!-- Bouton + -->
+        <button 
+          (click)="toggleRechargeMenu()"
+          [disabled]="isLoading()"
+          class="absolute -top-1 -right-1 w-10 h-10 bg-emerald-50 border-1 border-emerald-900 rounded-full flex items-center justify-center text-emerald-900 font-bold text-xl hover:bg-emerald-100 hover:cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          type="button"
+          aria-label="Recharger le solde">
+          @if (isLoading()) {
+            <span class="animate-spin">⟳</span>
+          } @else {
+            <span>+</span>
+          }
         </button>
-        <p class="text-4xl font-bold text-gray-900 mb-2">12 €</p>
+        
+        <!-- Menu déroulant -->
+        @if (showRechargeMenu()) {
+          <div class="absolute top-12 right-0 bg-white border border-gray-200 rounded-lg shadow-xl z-[1003] min-w-[200px] overflow-hidden">
+            <div class="p-2">
+              <p class="text-sm text-gray-600 font-semibold mb-2 px-2">Montant à recharger</p>
+              
+              @for (amount of rechargeAmounts; track amount) {
+                <button
+                  (click)="recharge(amount)"
+                  [disabled]="isLoading()"
+                  class="w-full text-left px-4 py-3 hover:bg-emerald-50 transition-colors rounded-md flex justify-between items-center group disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  type="button">
+                  <span class="font-medium text-gray-900 group-hover:text-emerald-900">{{ amount }} €</span>
+                  <span class="material-symbols-outlined text-gray-400 group-hover:text-emerald-900 text-sm">
+                    arrow_forward
+                  </span>
+                </button>
+              }
+            </div>
+          </div>
+        }
+        
+        <p class="text-4xl font-bold text-gray-900 mb-2">{{ balance() }} €</p>
         <p class="text-md text-gray-600">Solde</p>
       </div>
       
       <!-- Boîtes empruntées -->
-      <div class="shadow-md bg-white border border-gray-100 rounded-lg p-3 text-center hover:shadow-md hover:scale-105">
-        <p class="text-4xl font-bold text-gray-900 mb-2">3</p>
+      <div class="shadow-md bg-white border border-gray-100 rounded-lg p-3 text-center hover:shadow-md hover:scale-105 transition-all">
+        <p class="text-4xl font-bold text-gray-900 mb-2">{{ borrowedBoxes() }}</p>
         <p class="text-md text-gray-600">Boîtes empruntées</p>
       </div>
     </div>
     
     <!-- Code Client -->
-    <div class="shadow-md bg-white border border-gray-100 rounded-lg p-3 text-center mb-6 hover:shadow-md hover:scale-105">
-      <p class="text-4xl font-bold text-gray-900 mb-2">1234</p>
+    <div class="shadow-md bg-white border border-gray-100 rounded-lg p-3 text-center mb-6 hover:shadow-md hover:scale-105 transition-all">
+      <p class="text-4xl font-bold text-gray-900 mb-2">{{ customerCode() }}</p>
       <p class="text-md text-gray-600">Code client</p>
     </div>
 

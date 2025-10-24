@@ -7,6 +7,8 @@ import { Dashboard } from './apps/users/pages/dashboard/dashboard';
 import { Historical } from './apps/users/pages/historical/historical';
 import { Boxes } from './apps/users/pages/boxes/boxes';
 import { Settings } from './apps/users/pages/settings/settings';
+import { RechargeCancelComponent } from './apps/users/pages/users-home/recharge-cancel/recharge-cancel';
+import { RechargeSuccessComponent } from './apps/users/pages/users-home/recharge-success/recharge-success';
 
 import { Test1 } from './apps/pro/test/test';
 
@@ -33,7 +35,9 @@ export const routes: Routes = [
       { path: 'dashboard', component: Dashboard },
       { path: 'historique', component: Historical },
       { path: 'boites', component: Boxes },
-      { path: 'parametres', component: Settings }
+      { path: 'parametres', component: Settings },
+      { path: 'recharge', component: RechargeSuccessComponent },
+      { path: 'annule', component: RechargeCancelComponent }
     ]
   },
 
