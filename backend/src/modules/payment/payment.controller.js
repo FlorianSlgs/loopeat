@@ -131,6 +131,55 @@ const paymentController = {
       console.error('❌ Erreur lors du traitement du webhook:', error);
       return res.status(400).send(`Webhook Error: ${error.message}`);
     }
+  },
+
+  /**
+   * Récupérer le solde de l'utilisateur connecté
+   */
+  async getUserBalance(req, res) {
+    try {
+      console.log('💰 Récupération du solde pour l\'utilisateur:', req.user.id);
+
+      const balance = await paymentService.getUserBalance(req.user.id);
+
+      return res.status(200).json({
+        success: true,
+        balance: balance.amount
+      });
+
+    } catch (error) {
+      console.error('❌ Erreur lors de la récupération du solde:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Erreur lors de la récupération du solde',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+  },
+
+  /**
+   * Récupérer l'historique des transactions de l'utilisateur connecté
+   */
+  async getBalanceHistory(req, res) {
+    try {
+      console.log('📜 Récupération de l\'historique pour l\'utilisateur:', req.user.id);
+
+      const limit = parseInt(req.query.limit) || 50;
+      const history = await paymentService.getBalanceHistory(req.user.id, limit);
+
+      return res.status(200).json({
+        success: true,
+        history: history
+      });
+
+    } catch (error) {
+      console.error('❌ Erreur lors de la récupération de l\'historique:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Erreur lors de la récupération de l\'historique',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
   }
 };
 

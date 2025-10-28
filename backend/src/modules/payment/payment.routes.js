@@ -14,6 +14,16 @@ router.get('/verify-session/:sessionId', authMiddleware, (req, res) => {
   paymentController.verifySession(req, res);
 });
 
+// Route protégée - récupérer le solde de l'utilisateur
+router.get('/balance', authMiddleware, (req, res) => {
+  paymentController.getUserBalance(req, res);
+});
+
+// Route protégée - récupérer l'historique des transactions
+router.get('/history', authMiddleware, (req, res) => {
+  paymentController.getBalanceHistory(req, res);
+});
+
 // Webhook Stripe (NON protégé, mais vérifié par signature Stripe)
 // Note: express.raw() est déjà appliqué dans app.js pour cette route
 router.post('/webhook', (req, res) => {

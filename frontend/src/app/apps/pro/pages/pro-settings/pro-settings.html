@@ -1,0 +1,204 @@
+<section class="max-w-3xl mx-auto px-4 md:px-8 pt-22">
+
+  <!-- Section Nom -->
+  <div class="bg-white border border-gray-200 rounded-xl mb-4 overflow-hidden hover:shadow-md transition-shadow">
+    <button 
+      class="w-full flex items-center justify-between p-5 text-left hover:bg-gray-50 transition-colors hover:cursor-pointer" 
+      (click)="toggleSection('nom')"
+      type="button">
+      <span class="text-base font-semibold text-gray-700">Nom</span>
+      <div class="flex items-center gap-3">
+        <span class="text-sm text-gray-500 max-w-[200px] truncate">{{ nom() }}</span>
+        <svg 
+          class="w-5 h-5 text-gray-400 transition-transform duration-300"
+          [class.rotate-180]="expandedSection() === 'nom'"
+          xmlns="http://www.w3.org/2000/svg" 
+          viewBox="0 0 24 24" 
+          fill="none" 
+          stroke="currentColor" 
+          stroke-width="2">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </div>
+    </button>
+    @if (expandedSection() === 'nom') {
+      <div class="p-6 bg-gray-50 border-t border-gray-200 animate-fadeIn">
+        <form (ngSubmit)="updateNom()" class="space-y-4">
+          <div>
+            <label for="nom" class="block text-sm font-semibold text-gray-700 mb-2">Nouveau nom</label>
+            <input 
+              id="nom" 
+              type="text" 
+              [value]="nom()"
+              (input)="nom.set($any($event.target).value)"
+              placeholder="Entrez votre nom"
+              class="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all">
+          </div>
+          <button type="submit" class="w-full px-6 py-3 bg-emerald-500 text-white font-semibold rounded-lg hover:bg-emerald-600 hover:-translate-y-0.5 hover:shadow-lg transition-all hover:cursor-pointer">
+            Enregistrer
+          </button>
+        </form>
+      </div>
+    }
+  </div>
+
+  <!-- Section Email -->
+  <div class="bg-white border border-gray-200 rounded-xl mb-4 overflow-hidden hover:shadow-md transition-shadow">
+    <button 
+      class="w-full flex items-center justify-between p-5 text-left hover:bg-gray-50 transition-colors hover:cursor-pointer" 
+      (click)="toggleSection('email')"
+      type="button">
+      <span class="text-base font-semibold text-gray-700">Email</span>
+      <div class="flex items-center gap-3">
+        <span class="text-sm text-gray-500 max-w-[200px] truncate">{{ email() }}</span>
+        <svg 
+          class="w-5 h-5 text-gray-400 transition-transform duration-300"
+          [class.rotate-180]="expandedSection() === 'email'"
+          xmlns="http://www.w3.org/2000/svg" 
+          viewBox="0 0 24 24" 
+          fill="none" 
+          stroke="currentColor" 
+          stroke-width="2">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </div>
+    </button>
+    @if (expandedSection() === 'email') {
+      <div class="p-6 bg-gray-50 border-t border-gray-200 animate-fadeIn">
+        <form (ngSubmit)="updateEmail()" class="space-y-4">
+          <div>
+            <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">Nouvel email</label>
+            <input 
+              id="email" 
+              type="email" 
+              [value]="email()"
+              (input)="email.set($any($event.target).value)"
+              placeholder="Entrez votre email"
+              class="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all">
+          </div>
+          <button type="submit" class="w-full px-6 py-3 bg-emerald-500 text-white font-semibold rounded-lg hover:bg-emerald-600 hover:-translate-y-0.5 hover:shadow-lg transition-all hover:cursor-pointer">
+            Enregistrer
+          </button>
+        </form>
+      </div>
+    }
+  </div>
+
+  <!-- Section Mot de passe -->
+  <div class="bg-white border border-gray-200 rounded-xl mb-4 overflow-hidden hover:shadow-md transition-shadow">
+    <button 
+      class="w-full flex items-center justify-between p-5 text-left hover:bg-gray-50 transition-colors hover:cursor-pointer" 
+      (click)="toggleSection('password')"
+      type="button">
+      <span class="text-base font-semibold text-gray-700">Mot de passe</span>
+      <div class="flex items-center gap-3">
+        <span class="text-sm text-gray-500">••••••••</span>
+        <svg 
+          class="w-5 h-5 text-gray-400 transition-transform duration-300"
+          [class.rotate-180]="expandedSection() === 'password'"
+          xmlns="http://www.w3.org/2000/svg" 
+          viewBox="0 0 24 24" 
+          fill="none" 
+          stroke="currentColor" 
+          stroke-width="2">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </div>
+    </button>
+    @if (expandedSection() === 'password') {
+      <div class="p-6 bg-gray-50 border-t border-gray-200 animate-fadeIn">
+        <form (ngSubmit)="updatePassword()" class="space-y-4">
+          <div>
+            <label for="current-password" class="block text-sm font-semibold text-gray-700 mb-2">Mot de passe actuel</label>
+            <input 
+              id="current-password" 
+              type="password" 
+              [value]="currentPassword()"
+              (input)="currentPassword.set($any($event.target).value)"
+              placeholder="Entrez votre mot de passe actuel"
+              class="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all">
+          </div>
+          <div>
+            <label for="new-password" class="block text-sm font-semibold text-gray-700 mb-2">Nouveau mot de passe</label>
+            <input 
+              id="new-password" 
+              type="password" 
+              [value]="newPassword()"
+              (input)="newPassword.set($any($event.target).value)"
+              placeholder="Entrez votre nouveau mot de passe"
+              class="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all">
+          </div>
+          <div>
+            <label for="confirm-password" class="block text-sm font-semibold text-gray-700 mb-2">Confirmer le mot de passe</label>
+            <input 
+              id="confirm-password" 
+              type="password" 
+              [value]="confirmPassword()"
+              (input)="confirmPassword.set($any($event.target).value)"
+              placeholder="Confirmez votre nouveau mot de passe"
+              class="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all">
+          </div>
+          <button type="submit" class="w-full px-6 py-3 bg-emerald-500 text-white font-semibold rounded-lg hover:bg-emerald-600 hover:-translate-y-0.5 hover:shadow-lg transition-all hover:cursor-pointer">
+            Changer le mot de passe
+          </button>
+        </form>
+      </div>
+    }
+  </div>
+
+  <!-- Section Déconnexion -->
+  <div class="bg-white border border-red-200 rounded-xl mb-4 overflow-hidden hover:shadow-md transition-shadow hover:cursor-pointer">
+    <button 
+      class="w-full flex items-center justify-between p-5 text-left hover:bg-red-50 transition-colors hover:cursor-pointer" 
+      (click)="logout()"
+      type="button">
+      <span class="text-base font-semibold text-red-600">Se déconnecter</span>
+    </button>
+  </div>
+
+  <!-- Section Suppression du compte -->
+  <div class="bg-white border border-gray-200 rounded-xl mb-4 overflow-hidden hover:shadow-md transition-shadow">
+    <button 
+      class="w-full flex items-center justify-between p-5 text-left hover:bg-gray-50 transition-colors hover:cursor-pointer" 
+      (click)="toggleSection('delete')"
+      type="button">
+      <span class="text-base font-semibold text-gray-700">Supprimer le compte</span>
+      <svg 
+        class="w-5 h-5 text-gray-400 transition-transform duration-300"
+        [class.rotate-180]="expandedSection() === 'delete'"
+        xmlns="http://www.w3.org/2000/svg" 
+        viewBox="0 0 24 24" 
+        fill="none" 
+        stroke="currentColor" 
+        stroke-width="2">
+        <polyline points="6 9 12 15 18 9"></polyline>
+      </svg>
+    </button>
+    @if (expandedSection() === 'delete') {
+      <div class="p-6 bg-gray-50 border-t border-gray-200 animate-fadeIn">
+        <p class="text-sm text-red-900 mb-4 p-4 bg-red-50 rounded-lg border border-red-200">
+          <strong class="font-bold">Attention !</strong> Cette action est irréversible. 
+          Vous devez d'abord récupérer votre solde et toutes vos données seront définitivement supprimées.
+        </p>
+        <form (ngSubmit)="deleteAccount()" class="space-y-4">
+          <div>
+            <label for="confirm-delete" class="block text-sm font-semibold text-gray-700 mb-2">Tapez "SUPPRIMER" pour confirmer</label>
+            <input 
+              id="confirm-delete" 
+              type="text" 
+              [value]="deleteConfirmation()"
+              (input)="deleteConfirmation.set($any($event.target).value)"
+              placeholder="SUPPRIMER"
+              class="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all">
+          </div>
+          <button 
+            type="submit" 
+            [disabled]="deleteConfirmation() !== 'SUPPRIMER'"
+            class="w-full px-6 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 hover:-translate-y-0.5 hover:shadow-lg transition-all hover:cursor-pointer disabled:bg-gray-300 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none disabled:opacity-60 cursor-pointer">
+            Supprimer définitivement mon compte
+          </button>
+        </form>
+      </div>
+    }
+  </div>
+</section>

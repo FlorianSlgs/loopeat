@@ -1,6 +1,8 @@
 // src/server.js
+const http = require('http');
 const app = require('./app');
 const { testConnection } = require('./config/database');
+const websocketService = require('./utils/websocket.service');
 
 const PORT = process.env.PORT || 3000;
 
@@ -12,10 +14,17 @@ const startServer = async () => {
     // Tester la connexion à la base de données
     await testConnection();
     
-    // Démarrer le serveur Express
-    app.listen(PORT, () => {
+    // Créer le serveur HTTP
+    const server = http.createServer(app);
+    
+    // Initialiser WebSocket
+    websocketService.initialize(server);
+    
+    // Démarrer le serveur
+    server.listen(PORT, () => {
       console.log(`🚀 Serveur démarré sur le port ${PORT}`);
       console.log(`📡 API disponible sur http://localhost:${PORT}`);
+      console.log(`🔌 WebSocket disponible sur ws://localhost:${PORT}`);
     });
   } catch (err) {
     console.error('❌ Impossible de démarrer le serveur:', err);

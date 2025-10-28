@@ -33,6 +33,15 @@ class TokenService {
   decodeToken(token) {
     return jwt.decode(token);
   }
+
+  // ✅ AJOUTÉ : Générer un token personnalisé avec payload et expiration
+  generateToken(payload, expiresIn = '5m') {
+    return jwt.sign(
+      payload,
+      process.env.JWT_SECRET,
+      { expiresIn }
+    );
+  }
 }
 
 module.exports = new TokenService();

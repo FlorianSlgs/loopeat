@@ -1,0 +1,53 @@
+<!-- pro-dashboard.html -->
+<div class="h-full overflow-y-auto pt-23">
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+    
+    <!-- Profil utilisateur -->
+    <div class="shadow-md bg-white rounded-sm p-4 lg:p-8 mb-6 text-center w-fit mx-auto border border-gray-100 hover:shadow-md hover:scale-105 transition-all">
+      <span class="material-symbols-outlined block mb-1" style="font-size: 30px;">
+        account_circle
+      </span>
+      <p class="text-xl font-bold text-gray-900">{{ userName() }}</p>
+    </div>
+    
+    <!-- Champ de formulaire -->
+    <div class="shadow-md bg-white border border-gray-100 rounded-lg p-4 mb-6">
+      <input 
+        type="text" 
+        placeholder="Code client"
+        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-gray-900"
+        [(ngModel)]="customerCode">
+    </div>
+    
+    <!-- Boutons d'action -->
+    <div class="grid grid-cols-2 gap-6 mb-6">
+      <button 
+        (click)="lendBoxes()"
+        class="shadow-md bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg p-4 font-semibold transition-all hover:shadow-lg hover:scale-105">
+        Prêter des boîtes
+      </button>
+      
+      <button 
+        (click)="returnBoxes()"
+        class="shadow-md bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg p-4 font-semibold transition-all hover:shadow-lg hover:scale-105">
+        Rendre des boîtes
+      </button>
+    </div>
+    
+    <!-- Statistiques - Ligne 1 -->
+    <div class="grid grid-cols-2 gap-6 mb-6">
+      <!-- Boîtes propres -->
+      <div class="shadow-md bg-white border border-gray-100 rounded-lg p-3 text-center hover:shadow-md hover:scale-105 transition-all">
+        <p class="text-4xl font-bold text-gray-900 mb-2">{{ cleanBoxes() }}</p>
+        <p class="text-md text-gray-600">Boîtes propres</p>
+      </div>
+      
+      <!-- Boîtes en attente de lavage -->
+      <div class="shadow-md bg-white border border-gray-100 rounded-lg p-3 text-center hover:shadow-md hover:scale-105 transition-all">
+        <p class="text-4xl font-bold text-gray-900 mb-2">{{ dirtyBoxes() }}</p>
+        <p class="text-md text-gray-600">Boîtes en attente de lavage</p>
+      </div>
+    </div>
+
+  </div>
+</div>

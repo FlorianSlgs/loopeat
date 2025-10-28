@@ -102,7 +102,7 @@ const paymentRepository = {
   async getUserRechargeHistory(userId, limit = 10) {
     try {
       const result = await pool.query(
-        `SELECT 
+        `SELECT
           id,
           add as amount,
           title,
@@ -125,12 +125,43 @@ const paymentRepository = {
   },
 
   /**
+   * Récupérer l'historique complet (ajouts et retraits) d'un utilisateur
+   */
+  async getFullBalanceHistory(userId, limit = 50) {
+    try {
+      console.log(`📜 Récupération de l'historique pour user_id: ${userId}`);
+
+      const result = await pool.query(
+        `SELECT
+          id,
+          add,
+          subtract,
+          title,
+          created
+         FROM balance_history
+         WHERE user_id = $1
+         ORDER BY created DESC
+         LIMIT $2`,
+        [userId, limit]
+      );
+
+      console.log(`✅ ${result.rows.length} transactions trouvées`);
+      console.log('Détails:', JSON.stringify(result.rows, null, 2));
+
+      return result.rows;
+    } catch (error) {
+      console.error('❌ Erreur lors de la récupération de l\'historique complet:', error);
+      throw error;
+    }
+  },
+
+  /**
    * Calculer le solde total d'un utilisateur
    */
   async getUserBalance(userId) {
     try {
       const result = await pool.query(
-        `SELECT 
+        `SELECT
           COALESCE(SUM(add), 0) as total_added,
           COALESCE(SUM(subtract), 0) as total_subtracted,
           COALESCE(SUM(add), 0) - COALESCE(SUM(subtract), 0) as balance
@@ -143,6 +174,30 @@ const paymentRepository = {
       return result.rows[0];
     } catch (error) {
       console.error('❌ Erreur lors du calcul du solde:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Récupérer la balance directement depuis la table balance
+   */
+  async getBalanceFromTable(userId) {
+    try {
+      const result = await pool.query(
+        `SELECT amount
+         FROM balance
+         WHERE user_id = $1`,
+        [userId]
+      );
+
+      if (result.rows.length === 0) {
+        // Si aucune balance n'existe, retourner 0
+        return { amount: 0 };
+      }
+
+      return { amount: parseFloat(result.rows[0].amount) };
+    } catch (error) {
+      console.error('❌ Erreur lors de la récupération de la balance:', error);
       throw error;
     }
   }

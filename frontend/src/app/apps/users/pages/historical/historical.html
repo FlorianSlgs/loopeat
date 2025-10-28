@@ -1,9 +1,59 @@
 <!-- historical.html -->
 <div class="h-full overflow-y-auto pt-16">
   <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    
+
+    <!-- État de chargement -->
+    @if (isLoading()) {
+      <div class="flex justify-center items-center py-12">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+      </div>
+    }
+
+    <!-- Liste des transactions -->
+    @else if (transactions().length > 0) {
+      <div class="space-y-3">
+        @for (transaction of transactions(); track transaction.id) {
+          <div class="bg-white rounded-lg p-4 shadow-sm hover:shadow-md hover:translate-x-1 transition-all duration-200 border border-gray-100">
+            <div class="flex items-center gap-4">
+              <!-- Icône selon le type de transaction -->
+              <div class="w-12 h-12 rounded-lg flex items-center justify-center text-2xl flex-shrink-0"
+                   [ngClass]="isAddition(transaction) ? 'bg-green-100' : 'bg-red-100'">
+                <span class="material-symbols-outlined">
+                  {{ isAddition(transaction) ? 'stockpot' : 'lunch_dining' }}
+                </span>
+              </div>
+
+              <!-- Détails de la transaction -->
+              <div class="flex-1 min-w-0">
+                <p class="font-semibold text-gray-900">{{ transaction.title }}</p>
+                <p class="text-sm text-gray-600">{{ formatDate(transaction.created) }}</p>
+              </div>
+
+              <!-- Montant -->
+              <p class="text-lg font-bold flex-shrink-0"
+                 [ngClass]="isAddition(transaction) ? 'text-green-600' : 'text-red-600'">
+                {{ isAddition(transaction) ? '+' : '-' }} {{ getAbsoluteAmount(transaction) }} €
+              </p>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Message si aucune transaction -->
+    @else {
+      <div class="text-center py-12">
+        <span class="material-symbols-outlined text-gray-400 text-6xl mb-4">
+          receipt_long
+        </span>
+        <p class="text-gray-600 text-lg">Aucune transaction pour le moment</p>
+      </div>
+    }
+
+    <!-- Exemples commentés pour référence de présentation -->
+    <!--
     <div class="space-y-3">
-      <!-- Transaction 1 -->
+       Transaction 1 (Exemple d'ajout)
       <div class="bg-white rounded-lg p-4 shadow-sm hover:shadow-md hover:translate-x-1 transition-all duration-200 border border-gray-100">
         <div class="flex items-center gap-4">
           <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center text-2xl flex-shrink-0">
@@ -18,8 +68,8 @@
           <p class="text-lg font-bold text-green-600 flex-shrink-0">+10 €</p>
         </div>
       </div>
-      
-      <!-- Transaction 2 -->
+
+     Transaction 2 (Exemple de retrait)
       <div class="bg-white rounded-lg p-4 shadow-sm hover:shadow-md hover:translate-x-1 transition-all duration-200 border border-gray-100">
         <div class="flex items-center gap-4">
           <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center text-2xl flex-shrink-0">
@@ -35,5 +85,6 @@
         </div>
       </div>
     </div>
+    -->
   </div>
 </div>

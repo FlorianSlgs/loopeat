@@ -138,6 +138,32 @@ const paymentService = {
       // Ne pas throw pour ne pas faire échouer le webhook
       // Stripe va réessayer si on renvoie une erreur
     }
+  },
+
+  /**
+   * Récupérer le solde d'un utilisateur
+   */
+  async getUserBalance(userId) {
+    try {
+      const balance = await paymentRepository.getBalanceFromTable(userId);
+      return balance;
+    } catch (error) {
+      console.error('❌ Erreur lors de la récupération du solde:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Récupérer l'historique complet des transactions d'un utilisateur
+   */
+  async getBalanceHistory(userId, limit = 50) {
+    try {
+      const history = await paymentRepository.getFullBalanceHistory(userId, limit);
+      return history;
+    } catch (error) {
+      console.error('❌ Erreur lors de la récupération de l\'historique:', error);
+      throw error;
+    }
   }
 };
 

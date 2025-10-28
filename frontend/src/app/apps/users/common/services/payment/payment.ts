@@ -3,22 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../../../environments/environment.development';
-
-export interface RechargeResponse {
-  success: boolean;
-  url: string;
-  sessionId: string;
-}
-
-export interface SessionDetails {
-  success: boolean;
-  session: {
-    id: string;
-    status: string;
-    amount: number;
-    currency: string;
-  };
-}
+import { RechargeResponse, SessionDetails, BalanceResponse, BalanceHistoryItem, BalanceHistoryResponse } from '../../models/payment.model';
 
 @Injectable({
   providedIn: 'root'
@@ -38,6 +23,20 @@ export class PaymentService {
   verifySession(sessionId: string): Observable<SessionDetails> {
     return this.http.get<SessionDetails>(
       `${this.apiUrl}/verify-session/${sessionId}`,
+      { withCredentials: true }
+    );
+  }
+
+  getUserBalance(): Observable<BalanceResponse> {
+    return this.http.get<BalanceResponse>(
+      `${this.apiUrl}/balance`,
+      { withCredentials: true }
+    );
+  }
+
+  getBalanceHistory(limit: number = 50): Observable<BalanceHistoryResponse> {
+    return this.http.get<BalanceHistoryResponse>(
+      `${this.apiUrl}/history?limit=${limit}`,
       { withCredentials: true }
     );
   }

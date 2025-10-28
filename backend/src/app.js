@@ -47,6 +47,11 @@ try {
   app.use('/api/payment', paymentRoutes);
   console.log('✅ Routes payment chargées');
 
+  // Routes d'emprunt
+  const borrowRoutes = require('./modules/borrow/borrow.routes');
+  app.use('/api/borrow', borrowRoutes);
+  console.log('✅ Routes borrow chargées');
+
 } catch (err) {
   console.error('❌ Erreur lors du chargement des routes:', err);
   throw err;
