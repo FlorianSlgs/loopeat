@@ -15,6 +15,42 @@ interface ApiResponse<T> {
   message?: string;
   proposal?: T;
   proposals?: T[];
+  history?: T[];
+}
+
+// Interfaces pour l'inventaire
+export interface BoxInventoryItem {
+  type: number;
+  label: string;
+  clean: number;
+  dirty: number;
+  total: number;
+}
+
+export interface BoxInventoryTotals {
+  totalClean: number;
+  totalDirty: number;
+  totalBoxes: number;
+}
+
+export interface BoxInventoryResponse {
+  success: boolean;
+  inventory: BoxInventoryItem[];
+  totals: BoxInventoryTotals;
+}
+
+// 🆕 Interfaces pour l'historique mensuel
+export interface MonthlyHistoryRecord {
+  id: string;
+  month: string;
+  numberOfBoxes: number;
+  created: string;
+  lastUpdate: string;
+}
+
+export interface MonthlyHistoryResponse {
+  success: boolean;
+  history: MonthlyHistoryRecord[];
 }
 
 @Injectable({
@@ -31,7 +67,7 @@ export class ProBorrowService {
     return this.http.post<CreateProposalResponse>(
       `${this.apiUrl}/propose`, 
       request,
-      { withCredentials: true }  // ← Ajouter ici
+      { withCredentials: true }
     );
   }
 
@@ -41,7 +77,7 @@ export class ProBorrowService {
   getProposal(proposalId: string): Observable<ApiResponse<ProProposalDetails>> {
     return this.http.get<ApiResponse<ProProposalDetails>>(
       `${this.apiUrl}/proposal/${proposalId}`,
-      { withCredentials: true }  // ← Ajouter ici
+      { withCredentials: true }
     );
   }
 
@@ -51,7 +87,7 @@ export class ProBorrowService {
   getMyProposals(): Observable<ApiResponse<ProBorrowProposalGroup>> {
     return this.http.get<ApiResponse<ProBorrowProposalGroup>>(
       `${this.apiUrl}/my-proposals`,
-      { withCredentials: true }  // ← Ajouter ici
+      { withCredentials: true }
     );
   }
 
@@ -62,7 +98,27 @@ export class ProBorrowService {
     return this.http.post<ApiResponse<{ id: string; accepted: boolean }>>(
       `${this.apiUrl}/cancel/${proposalId}`,
       {},
-      { withCredentials: true }  // ← Ajouter ici
+      { withCredentials: true }
+    );
+  }
+
+  /**
+   * Récupérer l'inventaire des boîtes du professionnel
+   */
+  getInventory(): Observable<BoxInventoryResponse> {
+    return this.http.get<BoxInventoryResponse>(
+      `${this.apiUrl}/inventory`,
+      { withCredentials: true }
+    );
+  }
+
+  /**
+   * 🆕 Récupérer l'historique mensuel des emprunts
+   */
+  getMonthlyHistory(limit: number = 12): Observable<MonthlyHistoryResponse> {
+    return this.http.get<MonthlyHistoryResponse>(
+      `${this.apiUrl}/monthly-history?limit=${limit}`,
+      { withCredentials: true }
     );
   }
 }

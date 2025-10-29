@@ -27,6 +27,7 @@ class AuthController {
             name: user.name,
             admin: user.admin,
             verified: user.verified,
+            code: user.code,
             isPro: true
           } : {
             id: user.id,
@@ -34,6 +35,7 @@ class AuthController {
             firstName: user.firstName,
             lastName: user.lastName,
             verified: user.verified,
+            code: user.code,
             isPro: false
           };
           

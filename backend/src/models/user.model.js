@@ -4,7 +4,7 @@ class User {
   // Trouver un utilisateur par email
   static async findByEmail(email) {
     const query = `
-      SELECT id, email, first_name, last_name, password, verified
+      SELECT id, email, first_name, last_name, password, verified, code
       FROM users 
       WHERE email = $1 AND deleted = FALSE
     `;
@@ -12,14 +12,25 @@ class User {
     return result.rows[0] || null;
   }
 
-  // Créer un nouvel utilisateur (non vérifié par défaut)
-  static async create(email) {
+  // Trouver un utilisateur par code
+  static async findByCode(code) {
     const query = `
-      INSERT INTO users (email, verified, first_name, last_name, password)
-      VALUES ($1, FALSE, '', '', '')
-      RETURNING id, email, verified
+      SELECT id, email, first_name, last_name, password, verified, code
+      FROM users 
+      WHERE code = $1 AND deleted = FALSE
     `;
-    const result = await pool.query(query, [email.toLowerCase()]);
+    const result = await pool.query(query, [code]);
+    return result.rows[0] || null;
+  }
+
+  // Créer un nouvel utilisateur (non vérifié par défaut)
+  static async create(email, code) {
+    const query = `
+      INSERT INTO users (email, code, verified, first_name, last_name, password)
+      VALUES ($1, $2, FALSE, '', '', '')
+      RETURNING id, email, verified, code
+    `;
+    const result = await pool.query(query, [email.toLowerCase(), code]);
     return result.rows[0];
   }
 
@@ -29,7 +40,7 @@ class User {
       UPDATE users 
       SET verified = TRUE, last_update = NOW()
       WHERE email = $1 AND deleted = FALSE
-      RETURNING id, email, verified
+      RETURNING id, email, verified, code
     `;
     const result = await pool.query(query, [email.toLowerCase()]);
     return result.rows[0] || null;
@@ -41,7 +52,7 @@ class User {
       UPDATE users 
       SET first_name = $1, last_name = $2, last_update = NOW()
       WHERE email = $3 AND deleted = FALSE
-      RETURNING id, email, first_name, last_name, verified
+      RETURNING id, email, first_name, last_name, verified, code
     `;
     const result = await pool.query(query, [firstName, lastName, email.toLowerCase()]);
     return result.rows[0] || null;
@@ -53,26 +64,9 @@ class User {
       UPDATE users 
       SET password = $1, verified = TRUE, last_update = NOW()
       WHERE email = $2 AND deleted = FALSE
-      RETURNING id, email, first_name, last_name, verified
+      RETURNING id, email, first_name, last_name, verified, code
     `;
     const result = await pool.query(query, [hashedPassword, email.toLowerCase()]);
-    return result.rows[0] || null;
-  }
-
-  // Compléter l'inscription (ancienne méthode - gardée pour compatibilité)
-  static async completeRegistration(email, firstName, lastName, hashedPassword) {
-    const query = `
-      UPDATE users 
-      SET first_name = $1, last_name = $2, password = $3, verified = TRUE, last_update = NOW()
-      WHERE email = $4 AND deleted = FALSE
-      RETURNING id, email, first_name, last_name, verified
-    `;
-    const result = await pool.query(query, [
-      firstName,
-      lastName,
-      hashedPassword,
-      email.toLowerCase()
-    ]);
     return result.rows[0] || null;
   }
 }

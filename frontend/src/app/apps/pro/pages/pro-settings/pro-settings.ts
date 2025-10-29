@@ -12,9 +12,9 @@ export class ProSettings {
 private readonly authInitService = inject(AuthInitService);
 
   // Signals pour les données utilisateur
-  nom = signal('Dupont');
-  prenom = signal('Jean');
-  email = signal('jean.dupont@example.com');
+  nom = signal('Prénom');
+  prenom = signal('Nom');
+  email = signal('email@example.com');
   solde = signal(1250.50);
   
   // Signals pour les champs de mot de passe

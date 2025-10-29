@@ -1,8 +1,16 @@
 // historical.ts
-import { Component, OnInit, signal, inject, computed } from '@angular/core';
+import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PaymentService } from '../../common/services/payment/payment';
 import { BalanceHistoryItem } from '../../common/models/payment.model';
+
+interface Transaction {
+  id: string;
+  title: string;
+  date: string;
+  amount: number;
+  isAddition: boolean;
+}
 
 @Component({
   selector: 'app-historical',
@@ -14,7 +22,7 @@ export class Historical implements OnInit {
   private paymentService = inject(PaymentService);
 
   // State
-  transactions = signal<BalanceHistoryItem[]>([]);
+  transactions = signal<Transaction[]>([]);
   isLoading = signal(true);
 
   ngOnInit() {
@@ -22,14 +30,29 @@ export class Historical implements OnInit {
   }
 
   /**
-   * Charger l'historique des transactions depuis le backend
+   * Charger l'historique complet depuis balance_history uniquement
    */
   loadHistory() {
     this.isLoading.set(true);
+
     this.paymentService.getBalanceHistory().subscribe({
       next: (response) => {
-        if (response.success) {
-          this.transactions.set(response.history);
+        if (response.success && response.history) {
+          const allTransactions: Transaction[] = response.history.map((item: BalanceHistoryItem) => {
+            const isAddition = item.add !== null && item.add > 0;
+            // ✅ S'assurer que amount est toujours un nombre
+            const amount = isAddition ? (item.add || 0) : (item.subtract || 0);
+
+            return {
+              id: `transaction-${item.id}`,
+              title: item.title,
+              date: item.created,
+              amount: amount, // ✅ Maintenant c'est toujours un number
+              isAddition: isAddition
+            };
+          });
+
+          this.transactions.set(allTransactions);
         }
         this.isLoading.set(false);
       },
@@ -41,23 +64,10 @@ export class Historical implements OnInit {
   }
 
   /**
-   * Obtenir le montant d'une transaction (positif ou négatif)
+   * Déterminer si c'est un ajout (positif)
    */
-  getAmount(transaction: BalanceHistoryItem): number {
-    if (transaction.add !== null) {
-      return transaction.add;
-    }
-    if (transaction.subtract !== null) {
-      return -transaction.subtract;
-    }
-    return 0;
-  }
-
-  /**
-   * Déterminer si c'est un ajout ou un retrait
-   */
-  isAddition(transaction: BalanceHistoryItem): boolean {
-    return transaction.add !== null && transaction.add > 0;
+  isAddition(transaction: Transaction): boolean {
+    return transaction.isAddition;
   }
 
   /**
@@ -75,7 +85,24 @@ export class Historical implements OnInit {
   /**
    * Obtenir la valeur absolue d'un montant
    */
-  getAbsoluteAmount(transaction: BalanceHistoryItem): number {
-    return Math.abs(this.getAmount(transaction));
+  getAbsoluteAmount(transaction: Transaction): number {
+    return Math.abs(transaction.amount);
+  }
+
+  /**
+   * Obtenir l'icône selon le type de transaction
+   */
+  getIcon(transaction: Transaction): string {
+    // Déterminer le type selon le titre
+    const title = transaction.title.toLowerCase();
+    
+    if (title.includes('rendue') || title.includes('retour')) {
+      return 'stockpot'; // Boîtes rendues
+    }
+    if (title.includes('emprunt')) {
+      return 'lunch_dining'; // Boîtes empruntées
+    }
+    // Rechargement
+    return 'add_card';
   }
 }

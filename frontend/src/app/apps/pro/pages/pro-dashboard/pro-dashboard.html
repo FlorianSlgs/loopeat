@@ -8,6 +8,9 @@
         account_circle
       </span>
       <p class="text-xl font-bold text-gray-900">{{ userName() }}</p>
+      @if (proCode()) {
+        <p class="text-sm text-gray-600 mt-1">Code: {{ proCode() }}</p>
+      }
     </div>
     
     <!-- Champ de formulaire -->
@@ -34,7 +37,7 @@
       </button>
     </div>
     
-    <!-- Statistiques - Ligne 1 -->
+    <!-- Statistiques - Totaux -->
     <div class="grid grid-cols-2 gap-6 mb-6">
       <!-- Boîtes propres -->
       <div class="shadow-md bg-white border border-gray-100 rounded-lg p-3 text-center hover:shadow-md hover:scale-105 transition-all">
@@ -47,6 +50,73 @@
         <p class="text-4xl font-bold text-gray-900 mb-2">{{ dirtyBoxes() }}</p>
         <p class="text-md text-gray-600">Boîtes en attente de lavage</p>
       </div>
+    </div>
+
+    <!-- Inventaire détaillé -->
+    <div class="mb-4">
+      <h3 class="text-lg font-semibold text-gray-900 mb-4">Inventaire détaillé</h3>
+      
+      @if (isLoadingInventory()) {
+        <div class="flex justify-center items-center py-12">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-900"></div>
+        </div>
+      }
+
+      @else if (inventory().length > 0) {
+        <!-- Boîtes propres -->
+        <div class="mb-6">
+          <h4 class="text-md font-medium text-green-700 mb-3">Boîtes propres</h4>
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            @for (box of inventory(); track box.type) {
+              @if (box.clean > 0) {
+                <div class="bg-white rounded-lg p-4 shadow-sm hover:shadow-md hover:scale-105 transition-all duration-200 border border-green-100">
+                  <div class="flex flex-col items-center gap-3">
+                    <div class="w-30 h-30 rounded-lg flex items-center justify-center">
+                      <img 
+                        [src]="getBoxImage(box.type)" 
+                        [alt]="box.label" 
+                        class="max-w-full max-h-full object-contain">
+                    </div>
+                    <p class="font-semibold text-gray-900 text-center">
+                      {{ box.clean }} {{ box.label }}
+                    </p>
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        </div>
+
+        <!-- Boîtes sales -->
+        <div>
+          <h4 class="text-md font-medium text-red-700 mb-3">Boîtes en attente de lavage</h4>
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            @for (box of inventory(); track box.type) {
+              @if (box.dirty > 0) {
+                <div class="bg-white rounded-lg p-4 shadow-sm hover:shadow-md hover:scale-105 transition-all duration-200 border border-red-100">
+                  <div class="flex flex-col items-center gap-3">
+                    <div class="w-30 h-30 rounded-lg flex items-center justify-center opacity-60">
+                      <img 
+                        [src]="getBoxImage(box.type)" 
+                        [alt]="box.label" 
+                        class="max-w-full max-h-full object-contain">
+                    </div>
+                    <p class="font-semibold text-gray-900 text-center">
+                      {{ box.dirty }} {{ box.label }}
+                    </p>
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        </div>
+      }
+
+      @else {
+        <div class="text-center py-8 bg-gray-50 rounded-lg">
+          <p class="text-gray-600">Aucune boîte en inventaire</p>
+        </div>
+      }
     </div>
 
   </div>

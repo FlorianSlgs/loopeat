@@ -9,6 +9,30 @@ class AuthService {
     return crypto.randomInt(1000, 9999).toString();
   }
 
+  /**
+   * Génère un code unique de 4 chiffres pour un utilisateur
+   * Vérifie que le code n'existe pas déjà dans la base de données
+   */
+  async generateUniqueUserCode(isPro = false) {
+    let code;
+    let isUnique = false;
+    let attempts = 0;
+    const maxAttempts = 100;
+
+    while (!isUnique && attempts < maxAttempts) {
+      code = crypto.randomInt(1000, 9999).toString();
+      isUnique = await authRepository.isUserCodeUnique(code, isPro);
+      attempts++;
+    }
+
+    if (!isUnique) {
+      throw new Error('Impossible de générer un code unique après plusieurs tentatives');
+    }
+
+    console.log(`✅ Code unique généré: ${code}`);
+    return code;
+  }
+
   async getUserByEmail(email, isPro = false) {
     const user = await authRepository.findUserByEmail(email, isPro);
     
@@ -23,6 +47,7 @@ class AuthService {
         name: user.name,
         verified: user.verified,
         admin: user.admin,
+        code: user.code,
         isPro: true
       };
     }
@@ -33,6 +58,7 @@ class AuthService {
       firstName: user.first_name,
       lastName: user.last_name,
       verified: user.verified,
+      code: user.code,
       isPro: false
     };
   }
@@ -106,7 +132,11 @@ class AuthService {
       // Cas 1: L'utilisateur n'existe pas - créer un nouveau compte
       if (!user) {
         console.log('➕ Création d\'un nouvel utilisateur');
-        await authRepository.createUserWithEmail(email, isPro);
+        
+        // Générer un code unique pour l'utilisateur
+        const userCode = await this.generateUniqueUserCode(isPro);
+        
+        await authRepository.createUserWithEmail(email, isPro, userCode);
         
         const code = this.generateVerificationCode();
         await authRepository.createVerificationCode(email, code);
@@ -224,6 +254,7 @@ class AuthService {
           email: updatedUser.email,
           name: updatedUser.name,
           admin: updatedUser.admin,
+          code: updatedUser.code,
           isPro: true
         },
         message: 'Informations sauvegardées avec succès'
@@ -261,6 +292,7 @@ class AuthService {
           email: updatedUser.email,
           name: updatedUser.name,
           admin: updatedUser.admin,
+          code: updatedUser.code,
           isPro: true
         },
         message: 'Informations sauvegardées avec succès'
@@ -273,6 +305,7 @@ class AuthService {
         email: updatedUser.email,
         firstName: updatedUser.first_name,
         lastName: updatedUser.last_name,
+        code: updatedUser.code,
         isPro: false
       },
       message: 'Informations sauvegardées avec succès'
@@ -343,6 +376,7 @@ class AuthService {
           name: updatedUser.name,
           admin: updatedUser.admin,
           verified: true,
+          code: updatedUser.code,
           isPro: true
         },
         message: 'Inscription complétée avec succès'
@@ -356,6 +390,7 @@ class AuthService {
         firstName: updatedUser.first_name,
         lastName: updatedUser.last_name,
         verified: true,
+        code: updatedUser.code,
         isPro: false
       },
       message: 'Inscription complétée avec succès'
@@ -395,6 +430,7 @@ class AuthService {
           name: user.name,
           admin: user.admin,
           verified: user.verified,
+          code: user.code,
           isPro: true
         },
         message: 'Connexion réussie'
@@ -408,6 +444,7 @@ class AuthService {
         firstName: user.first_name,
         lastName: user.last_name,
         verified: user.verified,
+        code: user.code,
         isPro: false
       },
       message: 'Connexion réussie'

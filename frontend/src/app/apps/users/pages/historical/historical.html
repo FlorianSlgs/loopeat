@@ -19,14 +19,14 @@
               <div class="w-12 h-12 rounded-lg flex items-center justify-center text-2xl flex-shrink-0"
                    [ngClass]="isAddition(transaction) ? 'bg-green-100' : 'bg-red-100'">
                 <span class="material-symbols-outlined">
-                  {{ isAddition(transaction) ? 'stockpot' : 'lunch_dining' }}
+                  {{ getIcon(transaction) }}
                 </span>
               </div>
 
               <!-- Détails de la transaction -->
               <div class="flex-1 min-w-0">
                 <p class="font-semibold text-gray-900">{{ transaction.title }}</p>
-                <p class="text-sm text-gray-600">{{ formatDate(transaction.created) }}</p>
+                <p class="text-sm text-gray-600">{{ formatDate(transaction.date) }}</p>
               </div>
 
               <!-- Montant -->
@@ -49,42 +49,5 @@
         <p class="text-gray-600 text-lg">Aucune transaction pour le moment</p>
       </div>
     }
-
-    <!-- Exemples commentés pour référence de présentation -->
-    <!--
-    <div class="space-y-3">
-       Transaction 1 (Exemple d'ajout)
-      <div class="bg-white rounded-lg p-4 shadow-sm hover:shadow-md hover:translate-x-1 transition-all duration-200 border border-gray-100">
-        <div class="flex items-center gap-4">
-          <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center text-2xl flex-shrink-0">
-            <span class="material-symbols-outlined">
-              stockpot
-            </span>
-          </div>
-          <div class="flex-1 min-w-0">
-            <p class="font-semibold text-gray-900">2 boites ramenées</p>
-            <p class="text-sm text-gray-600">15 Oct 2025</p>
-          </div>
-          <p class="text-lg font-bold text-green-600 flex-shrink-0">+10 €</p>
-        </div>
-      </div>
-
-     Transaction 2 (Exemple de retrait)
-      <div class="bg-white rounded-lg p-4 shadow-sm hover:shadow-md hover:translate-x-1 transition-all duration-200 border border-gray-100">
-        <div class="flex items-center gap-4">
-          <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center text-2xl flex-shrink-0">
-            <span class="material-symbols-outlined">
-              lunch_dining
-            </span>
-          </div>
-          <div class="flex-1 min-w-0">
-            <p class="font-semibold text-gray-900">2 boites empruntées</p>
-            <p class="text-sm text-gray-600">14 Oct 2025</p>
-          </div>
-          <p class="text-lg font-bold text-red-600 flex-shrink-0">- 10 €</p>
-        </div>
-      </div>
-    </div>
-    -->
   </div>
 </div>

@@ -52,6 +52,11 @@ try {
   app.use('/api/borrow', borrowRoutes);
   console.log('✅ Routes borrow chargées');
 
+  // 🆕 Routes de compte
+  const accountsRoutes = require('./modules/accounts/accounts.routes');
+  app.use('/api/accounts', accountsRoutes);
+  console.log('✅ Routes accounts chargées');
+
 } catch (err) {
   console.error('❌ Erreur lors du chargement des routes:', err);
   throw err;

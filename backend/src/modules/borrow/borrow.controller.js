@@ -195,6 +195,97 @@ class BorrowController {
       });
     }
   }
+
+  /**
+   * [USER] Récupérer les boîtes empruntées actives
+   * GET /api/borrow/active
+   */
+  async getActiveBorrows(req, res) {
+    try {
+      console.log('📦 Récupération des boîtes empruntées actives');
+      console.log('User ID:', req.user.id);
+
+      const result = await borrowService.getUserActiveBorrows(req.user.id);
+
+      console.log('✅ Boîtes récupérées:', result.totalBoxes);
+      return res.json(result);
+    } catch (error) {
+      console.error('❌ Erreur lors de la récupération des boîtes:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Erreur lors de la récupération des boîtes empruntées'
+      });
+    }
+  }
+
+   /**
+   * [USER] Récupérer l'historique des emprunts et retours
+   * GET /api/borrow/history
+   */
+  async getBorrowHistory(req, res) {
+    try {
+      console.log('📜 Récupération de l\'historique des emprunts');
+      console.log('User ID:', req.user.id);
+
+      const limit = parseInt(req.query.limit) || 50;
+      const result = await borrowService.getUserBorrowHistory(req.user.id, limit);
+
+      console.log('✅ Historique récupéré:', result.transactions.length, 'transactions');
+      return res.json(result);
+    } catch (error) {
+      console.error('❌ Erreur lors de la récupération de l\'historique:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Erreur lors de la récupération de l\'historique'
+      });
+    }
+  }
+
+  /**
+   * [PRO] Récupérer l'inventaire des boîtes
+   * GET /api/borrow/inventory
+   */
+  async getInventory(req, res) {
+    try {
+      console.log('📦 Récupération de l\'inventaire');
+      console.log('Pro ID:', req.user.id);
+
+      const result = await borrowService.getProInventory(req.user.id);
+
+      console.log('✅ Inventaire récupéré');
+      return res.json(result);
+    } catch (error) {
+      console.error('❌ Erreur lors de la récupération de l\'inventaire:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Erreur lors de la récupération de l\'inventaire'
+      });
+    }
+  }
+
+    /**
+   * [PRO] Récupérer l'historique mensuel
+   * GET /api/borrow/monthly-history
+   */
+  async getMonthlyHistory(req, res) {
+    try {
+      console.log('📊 Récupération de l\'historique mensuel');
+      console.log('Pro ID:', req.user.id);
+
+      const limit = parseInt(req.query.limit) || 12;
+      const result = await borrowService.getMonthlyHistory(req.user.id, limit);
+
+      console.log('✅ Historique récupéré:', result.history.length, 'mois');
+      return res.json(result);
+    } catch (error) {
+      console.error('❌ Erreur lors de la récupération de l\'historique:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Erreur lors de la récupération de l\'historique mensuel'
+      });
+    }
+  }
+
 }
 
 module.exports = new BorrowController();

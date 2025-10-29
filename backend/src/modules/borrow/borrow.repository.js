@@ -306,6 +306,408 @@ class BorrowRepository {
     const result = await pool.query(query, params);
     return result.rows;
   }
+
+  /**
+   * Récupérer les boîtes empruntées actives par un utilisateur
+   * @param {number} userId - ID de l'utilisateur
+   * @returns {Promise<Array>} - Liste des boîtes empruntées
+   */
+  async getUserActiveBorrows(userId) {
+    const query = `
+      SELECT 
+        ub.id,
+        ub.number,
+        ub.type,
+        ub.borrowed,
+        p.id as pro_id,
+        p.name as pro_name,
+        p.email as pro_email
+      FROM users_boxes ub
+      JOIN professionnal p ON ub.borrowed_pro_id = p.id
+      WHERE ub.user_id = $1 
+        AND ub.accepted = true
+        AND ub.borrowed IS NOT NULL
+        AND ub.give_back IS NULL
+        AND ub.deleted IS NULL
+      ORDER BY ub.borrowed DESC
+    `;
+    const result = await pool.query(query, [userId]);
+    return result.rows;
+  }
+
+  /**
+   * Enregistrer un débit dans balance_history ET mettre à jour balance
+   * @param {number} userId - ID de l'utilisateur
+   * @param {number} amount - Montant à débiter
+   * @param {string} title - Description de la transaction
+   * @param {number} proposalId - ID de la proposition (optionnel)
+   */
+  async recordDebit(userId, amount, title, proposalId = null) {
+    const client = await pool.connect();
+    
+    try {
+      await client.query('BEGIN');
+      
+      console.log(`💸 Enregistrement du débit de ${amount}€ pour l'utilisateur ${userId}`);
+
+      // 1. Vérifier si l'utilisateur a assez de solde
+      const balanceResult = await client.query(
+        `SELECT amount FROM balance WHERE user_id = $1`,
+        [userId]
+      );
+
+      const currentBalance = balanceResult.rows.length > 0 
+        ? parseFloat(balanceResult.rows[0].amount) 
+        : 0;
+
+      if (currentBalance < amount) {
+        throw new Error(`Solde insuffisant. Solde actuel: ${currentBalance}€, Montant requis: ${amount}€`);
+      }
+
+      // 2. Insérer dans balance_history
+      const historyResult = await client.query(
+        `INSERT INTO balance_history (
+          user_id,
+          add,
+          subtract,
+          title,
+          last_update,
+          created
+        ) VALUES ($1, $2, $3, $4, NOW(), NOW())
+        RETURNING *`,
+        [
+          userId,
+          null,
+          amount,
+          title
+        ]
+      );
+
+      console.log('✅ Historique enregistré:', historyResult.rows[0].id);
+
+      // 3. Mettre à jour la balance
+      const newAmount = currentBalance - amount;
+      
+      if (balanceResult.rows.length > 0) {
+        // Mettre à jour la balance existante
+        await client.query(
+          `UPDATE balance 
+           SET amount = $1, 
+               last_update = NOW() 
+           WHERE user_id = $2`,
+          [newAmount, userId]
+        );
+        console.log(`✅ Balance mise à jour: ${newAmount}€`);
+      } else {
+        // Créer une nouvelle balance (cas rare, normalement déjà créée)
+        await client.query(
+          `INSERT INTO balance (user_id, amount, last_update, created)
+           VALUES ($1, $2, NOW(), NOW())`,
+          [userId, newAmount]
+        );
+        console.log(`✅ Balance créée: ${newAmount}€`);
+      }
+
+      await client.query('COMMIT');
+      console.log('✅ Débit enregistré avec succès');
+
+      return historyResult.rows[0];
+
+    } catch (error) {
+      await client.query('ROLLBACK');
+      console.error('❌ Erreur lors de l\'enregistrement du débit:', error);
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
+   * Calculer le coût total d'un emprunt selon les types de boîtes
+   * @param {Array} items - Tableau des items [{type, number}]
+   * @returns {number} - Coût total
+   */
+  calculateBorrowCost(items) {
+    const priceMap = {
+      1: 10,  // Verre Salade - 10€
+      2: 4,   // Plastique Salade - 4€
+      3: 2,   // Frites - 2€
+      4: 20,  // Pizza - 20€
+      5: 2,   // Gobelet - 2€
+      6: 6    // Burger - 6€
+    };
+
+    let totalCost = 0;
+
+    items.forEach(item => {
+      const pricePerUnit = priceMap[item.type] || 0;
+      totalCost += pricePerUnit * item.number;
+    });
+
+    return totalCost;
+  }
+
+  /**
+   * Récupérer l'historique des emprunts et retours d'un utilisateur
+   * @param {number} userId - ID de l'utilisateur
+   * @param {number} limit - Nombre maximum de résultats
+   * @returns {Promise<Array>} - Liste des transactions
+   */
+  async getUserBorrowHistory(userId, limit = 50) {
+    const query = `
+      SELECT 
+        ub.id,
+        ub.type,
+        ub.number,
+        ub.borrowed,
+        ub.give_back,
+        p.name as pro_name
+      FROM users_boxes ub
+      LEFT JOIN professionnal p ON ub.borrowed_pro_id = p.id
+      WHERE ub.user_id = $1 
+        AND ub.accepted = true
+        AND ub.borrowed IS NOT NULL
+        AND ub.deleted IS NULL
+      ORDER BY 
+        CASE 
+          WHEN ub.give_back IS NOT NULL THEN ub.give_back
+          ELSE ub.borrowed
+        END DESC
+      LIMIT $2
+    `;
+    
+    const result = await pool.query(query, [userId, limit]);
+    return result.rows;
+  }
+
+  /**
+   * Calculer le montant d'un emprunt ou retour
+   * @param {number} type - Type de boîte (1-6)
+   * @param {number} number - Nombre de boîtes
+   * @param {boolean} isReturn - true si c'est un retour
+   * @returns {number} - Montant (positif pour retour, négatif pour emprunt)
+   */
+  calculateAmount(type, number, isReturn = false) {
+    const priceMap = {
+      1: 10,  // Verre Salade - 10€
+      2: 4,   // Plastique Salade - 4€
+      3: 2,   // Frites - 2€
+      4: 20,  // Pizza - 20€
+      5: 2,   // Gobelet - 2€
+      6: 6    // Burger - 6€
+    };
+
+    const pricePerUnit = priceMap[type] || 0;
+    const amount = pricePerUnit * number;
+    
+    return isReturn ? amount : -amount;
+  }
+
+  /**
+   * Récupérer l'inventaire des boîtes d'un professionnel
+   * @param {number} proId - ID du professionnel
+   * @returns {Promise<Array>} - Liste des boîtes par type
+   */
+  async getProBoxesInventory(proId) {
+    const query = `
+      SELECT 
+        type,
+        clean,
+        dirty
+      FROM pro_boxes
+      WHERE pro_id = $1 AND deleted IS NULL
+      ORDER BY type ASC
+    `;
+    
+    const result = await pool.query(query, [proId]);
+    return result.rows;
+  }
+
+  /**
+   * Calculer les totaux de boîtes propres et sales
+   * @param {number} proId - ID du professionnel
+   * @returns {Promise<Object>} - Totaux
+   */
+  async getProBoxesTotals(proId) {
+    const query = `
+      SELECT 
+        COALESCE(SUM(clean), 0) as total_clean,
+        COALESCE(SUM(dirty), 0) as total_dirty
+      FROM pro_boxes
+      WHERE pro_id = $1 AND deleted IS NULL
+    `;
+    
+    const result = await pool.query(query, [proId]);
+    return result.rows[0] || { total_clean: 0, total_dirty: 0 };
+  }
+
+   /**
+   * Enregistrer l'emprunt dans l'historique mensuel
+   * @param {number} proId - ID du professionnel
+   * @param {number} numberOfBoxes - Nombre de boîtes empruntées
+   */
+  async recordMonthlyBorrowHistory(proId, numberOfBoxes) {
+    const client = await pool.connect();
+    
+    try {
+      await client.query('BEGIN');
+      
+      // Obtenir le premier jour du mois en cours
+      const currentMonth = new Date();
+      currentMonth.setDate(1);
+      currentMonth.setHours(0, 0, 0, 0);
+      const monthKey = currentMonth.toISOString().split('T')[0]; // Format: YYYY-MM-01
+
+      console.log(`📊 Enregistrement dans l'historique: ${numberOfBoxes} boîtes pour le mois ${monthKey}`);
+
+      // Vérifier si un enregistrement existe déjà pour ce mois
+      const checkQuery = `
+        SELECT id, number 
+        FROM boxes_history 
+        WHERE pro_id = $1 AND month = $2 AND deleted IS NULL
+      `;
+      const checkResult = await client.query(checkQuery, [proId, monthKey]);
+
+      if (checkResult.rows.length > 0) {
+        // Mettre à jour l'enregistrement existant (additionner)
+        const currentNumber = parseInt(checkResult.rows[0].number) || 0;
+        const newNumber = currentNumber + numberOfBoxes;
+
+        const updateQuery = `
+          UPDATE boxes_history
+          SET number = $1, last_update = NOW()
+          WHERE id = $2
+          RETURNING *
+        `;
+        const result = await client.query(updateQuery, [newNumber, checkResult.rows[0].id]);
+        
+        console.log(`✅ Historique mis à jour: ${currentNumber} + ${numberOfBoxes} = ${newNumber}`);
+        
+        await client.query('COMMIT');
+        return result.rows[0];
+      } else {
+        // Créer un nouvel enregistrement pour ce mois
+        const insertQuery = `
+          INSERT INTO boxes_history (pro_id, number, month, created, last_update)
+          VALUES ($1, $2, $3, NOW(), NOW())
+          RETURNING *
+        `;
+        const result = await client.query(insertQuery, [proId, numberOfBoxes, monthKey]);
+        
+        console.log(`✅ Nouvel historique créé: ${numberOfBoxes} boîtes`);
+        
+        await client.query('COMMIT');
+        return result.rows[0];
+      }
+    } catch (error) {
+      await client.query('ROLLBACK');
+      console.error('❌ Erreur lors de l\'enregistrement dans boxes_history:', error);
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
+   * Accepter une proposition d'emprunt (USER)
+   * Modifié pour enregistrer dans l'historique
+   */
+  async acceptProposal(proposalId, userId) {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      // Vérifier que la proposition existe et appartient à l'utilisateur
+      const checkQuery = `
+        SELECT * FROM users_boxes
+        WHERE id = $1 
+          AND user_id = $2 
+          AND accepted IS NULL 
+          AND deleted IS NULL
+          AND created > NOW() - INTERVAL '5 minutes'
+      `;
+      const checkResult = await client.query(checkQuery, [proposalId, userId]);
+
+      if (checkResult.rows.length === 0) {
+        throw new Error('Proposition non trouvée, expirée ou déjà traitée');
+      }
+
+      const proposal = checkResult.rows[0];
+
+      // Mettre à jour la proposition avec accepted = true et la date d'emprunt
+      const updateQuery = `
+        UPDATE users_boxes
+        SET accepted = true, borrowed = CURRENT_TIMESTAMP
+        WHERE id = $1
+        RETURNING *
+      `;
+      const updateResult = await client.query(updateQuery, [proposalId]);
+
+      // Mettre à jour l'inventaire du professionnel (retirer des boîtes propres)
+      const updateProBoxesQuery = `
+        UPDATE pro_boxes
+        SET clean = clean - $1
+        WHERE pro_id = $2 AND type = $3 AND clean >= $1
+        RETURNING *
+      `;
+      const proBoxesResult = await client.query(updateProBoxesQuery, [
+        proposal.number,
+        proposal.borrowed_pro_id,
+        proposal.type
+      ]);
+
+      if (proBoxesResult.rows.length === 0) {
+        throw new Error('Stock insuffisant chez le professionnel');
+      }
+
+      // 🆕 Enregistrer dans l'historique mensuel
+      // Utiliser une sous-requête pour éviter les problèmes de transaction
+      const historyQuery = `
+        INSERT INTO boxes_history (pro_id, number, month, created, last_update)
+        VALUES ($1, $2, DATE_TRUNC('month', CURRENT_DATE), NOW(), NOW())
+        ON CONFLICT (pro_id, month)
+        DO UPDATE SET 
+          number = boxes_history.number + EXCLUDED.number,
+          last_update = NOW()
+        RETURNING *
+      `;
+      await client.query(historyQuery, [proposal.borrowed_pro_id, proposal.number]);
+
+      console.log(`📊 Historique mensuel mis à jour: +${proposal.number} boîtes`);
+
+      await client.query('COMMIT');
+      return updateResult.rows[0];
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
+   * Récupérer l'historique mensuel d'un professionnel
+   * @param {number} proId - ID du professionnel
+   * @param {number} limit - Nombre de mois à récupérer (par défaut 12)
+   */
+  async getMonthlyHistory(proId, limit = 12) {
+    const query = `
+      SELECT 
+        id,
+        pro_id,
+        number,
+        month,
+        created,
+        last_update
+      FROM boxes_history
+      WHERE pro_id = $1 AND deleted IS NULL
+      ORDER BY month DESC
+      LIMIT $2
+    `;
+    
+    const result = await pool.query(query, [proId, limit]);
+    return result.rows;
+  }
 }
 
 module.exports = new BorrowRepository();

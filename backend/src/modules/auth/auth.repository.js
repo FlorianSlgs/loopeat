@@ -3,6 +3,21 @@ const Pro = require('../../models/pro.model');
 const Verification = require('../../models/verification.model');
 
 class AuthRepository {
+  /**
+   * Vérifie si un code utilisateur est unique
+   * @param {string} code - Code de 4 chiffres à vérifier
+   * @param {boolean} isPro - True si c'est pour un professionnel
+   * @returns {Promise<boolean>} - True si le code est unique
+   */
+  async isUserCodeUnique(code, isPro = false) {
+    if (isPro) {
+      const existingPro = await Pro.findByCode(code);
+      return !existingPro;
+    }
+    const existingUser = await User.findByCode(code);
+    return !existingUser;
+  }
+
   // Trouver par email (utilisateur ou pro)
   async findUserByEmail(email, isPro = false) {
     if (isPro) {
@@ -11,12 +26,12 @@ class AuthRepository {
     return await User.findByEmail(email);
   }
 
-  // Créer avec email (utilisateur ou pro)
-  async createUserWithEmail(email, isPro = false) {
+  // Créer avec email (utilisateur ou pro) et code unique
+  async createUserWithEmail(email, isPro = false, code = null) {
     if (isPro) {
-      return await Pro.create(email);
+      return await Pro.create(email, code);
     }
-    return await User.create(email);
+    return await User.create(email, code);
   }
 
   async createVerificationCode(email, code) {

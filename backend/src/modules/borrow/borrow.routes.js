@@ -4,7 +4,7 @@ const router = express.Router();
 const borrowController = require('./borrow.controller');
 const authMiddleware = require('../../middlewares/auth.middleware');
 
-console.log('📍 Chargement des routes borrow...');
+console.log('🔍 Chargement des routes borrow...');
 
 /**
  * Routes communes (PRO et USER)
@@ -18,6 +18,17 @@ router.get('/proposal/:proposalId', authMiddleware, (req, res) => {
 /**
  * Routes pour les professionnels
  */
+
+// 🆕 Récupérer l'inventaire des boîtes (PRO uniquement)
+router.get('/inventory', authMiddleware, (req, res) => {
+  if (!req.user.isPro) {
+    return res.status(403).json({
+      success: false,
+      message: 'Accès réservé aux professionnels'
+    });
+  }
+  borrowController.getInventory(req, res);
+});
 
 // Créer une proposition d'emprunt (PRO uniquement)
 router.post('/propose', authMiddleware, (req, res) => {
@@ -52,9 +63,31 @@ router.get('/my-proposals', authMiddleware, (req, res) => {
   borrowController.getMyProposals(req, res);
 });
 
+// 🆕 Récupérer l'historique mensuel (PRO uniquement)
+router.get('/monthly-history', authMiddleware, (req, res) => {
+  if (!req.user.isPro) {
+    return res.status(403).json({
+      success: false,
+      message: 'Accès réservé aux professionnels'
+    });
+  }
+  borrowController.getMonthlyHistory(req, res);
+});
+
 /**
  * Routes pour les utilisateurs
  */
+
+// 🆕 Récupérer les boîtes empruntées actives (USER uniquement)
+router.get('/active', authMiddleware, (req, res) => {
+  if (req.user.isPro) {
+    return res.status(403).json({
+      success: false,
+      message: 'Accès réservé aux utilisateurs'
+    });
+  }
+  borrowController.getActiveBorrows(req, res);
+});
 
 // Récupérer les propositions en attente (USER uniquement)
 router.get('/pending', authMiddleware, (req, res) => {
@@ -87,6 +120,17 @@ router.post('/reject/:proposalId', authMiddleware, (req, res) => {
     });
   }
   borrowController.rejectProposal(req, res);
+});
+
+// 🆕 Récupérer l'historique des emprunts et retours (USER uniquement)
+router.get('/history', authMiddleware, (req, res) => {
+  if (req.user.isPro) {
+    return res.status(403).json({
+      success: false,
+      message: 'Accès réservé aux utilisateurs'
+    });
+  }
+  borrowController.getBorrowHistory(req, res);
 });
 
 console.log('✅ Routes borrow chargées');

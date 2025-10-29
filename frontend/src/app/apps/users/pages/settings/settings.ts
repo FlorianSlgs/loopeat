@@ -12,10 +12,10 @@ export class Settings {
   private readonly authInitService = inject(AuthInitService);
 
   // Signals pour les données utilisateur
-  nom = signal('Dupont');
-  prenom = signal('Jean');
-  email = signal('jean.dupont@example.com');
-  solde = signal(1250.50);
+  nom = signal('Nom');
+  prenom = signal('Prénom');
+  email = signal('email@example.com');
+  solde = signal(0);
   
   // Signals pour les champs de mot de passe
   currentPassword = signal('');

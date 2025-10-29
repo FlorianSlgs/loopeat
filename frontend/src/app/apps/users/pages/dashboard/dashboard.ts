@@ -3,6 +3,8 @@ import { Component, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DashboardMap } from './dashboard-map/dashboard-map';
 import { PaymentService } from '../../common/services/payment/payment';
+import { AccountsService } from '../../common/services/accounts/accounts.services';
+import { BorrowService } from '../../common/services/borrow/borrow.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -11,25 +13,55 @@ import { PaymentService } from '../../common/services/payment/payment';
   styleUrl: './dashboard.css'
 })
 export class Dashboard implements OnInit {
-  private paymentService = inject(PaymentService); // Instance injectable
+  private paymentService = inject(PaymentService);
+  private accountsService = inject(AccountsService);
+  private borrowService = inject(BorrowService); // 🆕
 
   // State
   showRechargeMenu = signal(false);
   isLoading = signal(false);
-  balance = signal(0); // Sera chargé depuis le backend
-  userName = signal('John Deer');
-  borrowedBoxes = signal(3);
-  customerCode = signal('1234');
+  balance = signal(0);
+  userName = signal('');
+  borrowedBoxes = signal(0); // 🆕 Maintenant chargé depuis le backend
+  customerCode = signal('');
 
   // Montants prédéfinis pour le rechargement
   rechargeAmounts = [5, 10, 20, 50];
 
   ngOnInit() {
+    this.loadUserBasicInfo();
     this.loadUserBalance();
+    this.loadBorrowedBoxes(); // 🆕
   }
 
   /**
-   * Charger le solde de l'utilisateur depuis le backend
+   * Charger le code et le nom de l'utilisateur
+   */
+  loadUserBasicInfo() {
+    this.accountsService.getBasicInfo().subscribe({
+      next: (response) => {
+        if (response.success) {
+          const data = response.data;
+          
+          // Code client
+          this.customerCode.set(data.code);
+          
+          // Nom selon le type d'utilisateur
+          if (data.isPro) {
+            this.userName.set(data.name || '');
+          } else {
+            this.userName.set(`${data.firstName || ''} ${data.lastName || ''}`.trim());
+          }
+        }
+      },
+      error: (error) => {
+        console.error('Erreur lors du chargement des infos utilisateur:', error);
+      }
+    });
+  }
+
+  /**
+   * Charger le solde de l'utilisateur depuis le backend (PaymentService)
    */
   loadUserBalance() {
     this.paymentService.getUserBalance().subscribe({
@@ -40,7 +72,22 @@ export class Dashboard implements OnInit {
       },
       error: (error) => {
         console.error('Erreur lors du chargement du solde:', error);
-        // En cas d'erreur, on garde la valeur par défaut (0)
+      }
+    });
+  }
+
+  /**
+   * 🆕 Charger le nombre de boîtes empruntées
+   */
+  loadBorrowedBoxes() {
+    this.borrowService.getActiveBorrows().subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.borrowedBoxes.set(response.totalBoxes);
+        }
+      },
+      error: (error) => {
+        console.error('Erreur lors du chargement des boîtes empruntées:', error);
       }
     });
   }
@@ -78,6 +125,13 @@ export class Dashboard implements OnInit {
    */
   refreshBalance() {
     this.loadUserBalance();
+  }
+
+  /**
+   * 🆕 Recharger le nombre de boîtes empruntées
+   */
+  refreshBorrowedBoxes() {
+    this.loadBorrowedBoxes();
   }
   
   // Fermer le menu si on clique en dehors
