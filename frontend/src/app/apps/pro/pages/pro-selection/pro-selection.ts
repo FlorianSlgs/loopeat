@@ -92,7 +92,6 @@ export class ProSelection  implements OnInit {
    */
   submit(): void {
     if (!this.hasSelection()) {
-      alert('Veuillez sélectionner au moins une boîte');
       return;
     }
 
@@ -118,10 +117,9 @@ export class ProSelection  implements OnInit {
       items: items
     }).subscribe({
       next: (response) => {
-        if (response.success && response.proposals.length > 0) {
-          // Rediriger vers la page de validation avec le premier ID de proposition
-          const firstProposalId = response.proposals[0].id;
-          this.router.navigate(['/pro/borrow/validation', firstProposalId]);
+        if (response.success && response.batchId) {
+          // Rediriger vers la page de validation avec le batch_id
+          this.router.navigate(['/pro/borrow/validation', response.batchId]);
         } else {
           this.error.set('Erreur lors de la création de la proposition');
           this.loading.set(false);

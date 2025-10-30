@@ -46,19 +46,31 @@ class BorrowService {
         borrowItems
       );
 
-      // Démarrer le timer WebSocket pour chaque proposition
-      proposals.forEach(proposal => {
-        websocketService.startProposalTimer(proposal.id, user.id, proId);
-      });
+      // Extraire le batch_id (tous les items ont le même batch_id)
+      const batchId = proposals.length > 0 ? proposals[0].batch_id : null;
+      const proposalIds = proposals.map(p => p.id);
+
+      // Démarrer le timer WebSocket
+      if (proposals.length > 1 && batchId) {
+        // Plusieurs propositions: utiliser le timer batch
+        console.log(`📦 Création d'un batch de ${proposals.length} propositions`);
+        websocketService.startBatchTimer(batchId, proposalIds, user.id, proId);
+      } else if (proposals.length === 1) {
+        // Une seule proposition: utiliser le timer classique
+        console.log(`📦 Création d'une proposition unique`);
+        websocketService.startProposalTimer(proposals[0].id, user.id, proId);
+      }
 
       return {
         success: true,
         message: 'Proposition(s) d\'emprunt créée(s) avec succès',
+        batchId: batchId,
         proposals: proposals.map(p => ({
           id: p.id,
           type: p.type,
           number: p.number,
           created: p.created,
+          batchId: p.batch_id,
           expiresIn: 300000 // 5 minutes en ms
         })),
         user: {
@@ -168,45 +180,6 @@ class BorrowService {
       };
     } catch (error) {
       console.error('Erreur dans getUserPendingProposals:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Accepter une proposition d'emprunt (USER)
-   */
-  async acceptProposal(proposalId, userId) {
-    try {
-      // Récupérer les infos avant acceptation
-      const proposalInfo = await borrowRepository.getProposalById(proposalId);
-      
-      if (!proposalInfo) {
-        throw new Error('Proposition non trouvée');
-      }
-
-      // Accepter la proposition
-      const acceptedProposal = await borrowRepository.acceptProposal(proposalId, userId);
-
-      // Notifier via WebSocket
-      websocketService.notifyProposalAccepted(
-        proposalId,
-        proposalInfo.user_id,
-        proposalInfo.borrowed_pro_id
-      );
-
-      return {
-        success: true,
-        message: 'Proposition acceptée avec succès',
-        proposal: {
-          id: acceptedProposal.id,
-          type: acceptedProposal.type,
-          number: acceptedProposal.number,
-          accepted: acceptedProposal.accepted,
-          borrowed: acceptedProposal.borrowed
-        }
-      };
-    } catch (error) {
-      console.error('Erreur dans acceptProposal:', error);
       throw error;
     }
   }
@@ -379,74 +352,6 @@ class BorrowService {
     }
   }
 
-  /**
-   * Accepter une proposition d'emprunt (USER)
-   */
-  async acceptProposal(proposalId, userId) {
-    try {
-      // Récupérer les infos avant acceptation
-      const proposalInfo = await borrowRepository.getProposalById(proposalId);
-      
-      if (!proposalInfo) {
-        throw new Error('Proposition non trouvée');
-      }
-
-      // Calculer le coût de cet emprunt spécifique
-      const cost = borrowRepository.calculateBorrowCost([{
-        type: proposalInfo.type,
-        number: proposalInfo.number
-      }]);
-
-      console.log(`💰 Coût de l'emprunt: ${cost}€ (Type ${proposalInfo.type}, Quantité: ${proposalInfo.number})`);
-
-      // Enregistrer le débit AVANT d'accepter la proposition
-      const boxTypeLabels = {
-        1: 'Boite Salade Verre',
-        2: 'Boite Salade Plastique',
-        3: 'Boîte Frite',
-        4: 'Boîte Pizza',
-        5: 'Gobelet',
-        6: 'Burger'
-      };
-
-      const boxLabel = boxTypeLabels[proposalInfo.type] || `Type ${proposalInfo.type}`;
-      const debitTitle = `Emprunt de ${proposalInfo.number} ${proposalInfo.number > 1 ? 's' : ''} ${boxLabel}`;
-
-      await borrowRepository.recordDebit(
-        userId,
-        cost,
-        debitTitle,
-        proposalId
-      );
-
-      // Accepter la proposition
-      const acceptedProposal = await borrowRepository.acceptProposal(proposalId, userId);
-
-      // Notifier via WebSocket
-      websocketService.notifyProposalAccepted(
-        proposalId,
-        proposalInfo.user_id,
-        proposalInfo.borrowed_pro_id
-      );
-
-      return {
-        success: true,
-        message: 'Proposition acceptée avec succès',
-        proposal: {
-          id: acceptedProposal.id,
-          type: acceptedProposal.type,
-          number: acceptedProposal.number,
-          accepted: acceptedProposal.accepted,
-          borrowed: acceptedProposal.borrowed,
-          cost: cost
-        }
-      };
-    } catch (error) {
-      console.error('❌ Erreur dans acceptProposal:', error);
-      throw error;
-    }
-  }
-
    /**
    * Récupérer l'historique des emprunts et retours d'un utilisateur
    */
@@ -457,10 +362,10 @@ class BorrowService {
       const boxTypeLabels = {
         1: 'Boite Salade Verre',
         2: 'Boite Salade Plastique',
-        3: 'Boîte Frite',
-        4: 'Boîte Pizza',
+        3: 'Boite Frites',
+        4: 'Boite Pizza',
         5: 'Gobelet',
-        6: 'Burger'
+        6: 'Boite Burger'
       };
 
       // Transformer les données pour le frontend
@@ -522,10 +427,10 @@ class BorrowService {
       const boxTypeLabels = {
         1: 'Boite Salade Verre',
         2: 'Boite Salade Plastique',
-        3: 'Boîte Frite',
-        4: 'Boîte Pizza',
+        3: 'Boite Frites',
+        4: 'Boite Pizza',
         5: 'Gobelet',
-        6: 'Burger'
+        6: 'Boite Burger'
       };
 
       // Formater les données
@@ -575,12 +480,12 @@ class BorrowService {
 
       // Enregistrer le débit AVANT d'accepter la proposition
       const boxTypeLabels = {
-        1: 'Pizza',
-        2: 'Frites',
-        3: 'Gobelet',
-        4: 'Plastique Salade',
-        5: 'Verre Salade',
-        6: 'Burger'
+        1: 'Boite Salade Verre',
+        2: 'Boite Salade Plastique',
+        3: 'Boite Frites',
+        4: 'Boite Pizza',
+        5: 'Gobelet',
+        6: 'Boite Burger'
       };
 
       const boxLabel = boxTypeLabels[proposalInfo.type] || `Type ${proposalInfo.type}`;
@@ -645,6 +550,179 @@ class BorrowService {
       };
     } catch (error) {
       console.error('❌ Erreur dans getMonthlyHistory:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Récupérer toutes les propositions d'un batch par batch_id
+   */
+  async getProposalsByBatchId(batchId, userId, isPro) {
+    try {
+      const proposals = await borrowRepository.getProposalsByBatchId(batchId);
+
+      if (!proposals || proposals.length === 0) {
+        throw new Error('Propositions non trouvées');
+      }
+
+      // Vérifier que l'utilisateur a le droit d'accéder à ces propositions
+      const firstProposal = proposals[0];
+      if (isPro && firstProposal.borrowed_pro_id !== userId) {
+        throw new Error('Accès non autorisé à ces propositions');
+      }
+
+      if (!isPro && firstProposal.user_id !== userId) {
+        throw new Error('Accès non autorisé à ces propositions');
+      }
+
+      // Calculer le temps restant basé sur le temps écoulé depuis la création
+      // Cela évite les race conditions avec le WebSocket service
+      const elapsedSeconds = firstProposal.elapsed_seconds || 0;
+      const timeRemaining = Math.max(0, (300 - elapsedSeconds) * 1000); // 5 minutes - temps écoulé
+
+      return {
+        success: true,
+        batchId: batchId,
+        proposals: proposals.map(p => ({
+          id: p.id,
+          type: p.type,
+          number: p.number,
+          accepted: p.accepted,
+          borrowed: p.borrowed,
+          created: p.created,
+          timeRemaining
+        })),
+        user: {
+          firstName: firstProposal.first_name,
+          lastName: firstProposal.last_name,
+          email: firstProposal.user_email
+        },
+        pro: {
+          name: firstProposal.pro_name,
+          email: firstProposal.pro_email
+        }
+      };
+    } catch (error) {
+      console.error('Erreur dans getProposalsByBatchId:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Accepter un batch entier de propositions (USER)
+   */
+  async acceptBatch(batchId, userId) {
+    try {
+      // Récupérer toutes les propositions du batch
+      const proposals = await borrowRepository.getProposalsByBatchId(batchId);
+
+      if (!proposals || proposals.length === 0) {
+        throw new Error('Propositions non trouvées');
+      }
+
+      // Calculer le coût total de tous les emprunts du batch
+      const items = proposals.map(p => ({
+        type: p.type,
+        number: p.number
+      }));
+      const totalCost = borrowRepository.calculateBorrowCost(items);
+
+      console.log(`💰 Coût total du batch: ${totalCost}€ (${items.length} types de boîtes)`);
+
+      // Enregistrer le débit AVANT d'accepter le batch
+      const boxTypeLabels = {
+        1: 'Boite Salade Verre',
+        2: 'Boite Salade Plastique',
+        3: 'Boite Frites',
+        4: 'Boite Pizza',
+        5: 'Gobelet',
+        6: 'Boite Burger'
+      };
+
+      // Générer le titre détaillé avec tous les types de boîtes
+      const boxDetails = items.map(item => {
+        const boxLabel = boxTypeLabels[item.type] || `Type ${item.type}`;
+        return `${item.number} ${boxLabel}`;
+      }).join(' + ');
+
+      const debitTitle = `Emprunt de ${boxDetails}`;
+
+      await borrowRepository.recordDebit(
+        userId,
+        totalCost,
+        debitTitle,
+        null
+      );
+
+      // Accepter toutes les propositions du batch
+      const acceptedProposals = await borrowRepository.acceptBatch(batchId, userId);
+
+      // Notifier via WebSocket pour la première proposition (représentative du batch)
+      if (acceptedProposals.length > 0) {
+        const firstProposal = acceptedProposals[0];
+        websocketService.notifyProposalAccepted(
+          batchId,
+          firstProposal.user_id,
+          firstProposal.borrowed_pro_id
+        );
+      }
+
+      return {
+        success: true,
+        message: 'Propositions acceptées avec succès',
+        batchId: batchId,
+        proposals: acceptedProposals.map(p => ({
+          id: p.id,
+          type: p.type,
+          number: p.number,
+          accepted: p.accepted,
+          borrowed: p.borrowed
+        })),
+        totalCost: totalCost
+      };
+    } catch (error) {
+      console.error('❌ Erreur dans acceptBatch:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Refuser un batch entier de propositions (USER ou PRO)
+   */
+  async rejectBatch(batchId, userId, isPro = false) {
+    try {
+      // Récupérer les propositions du batch pour notification
+      const proposals = await borrowRepository.getProposalsByBatchId(batchId);
+
+      if (!proposals || proposals.length === 0) {
+        throw new Error('Propositions non trouvées');
+      }
+
+      // Refuser toutes les propositions du batch
+      const rejectedProposals = await borrowRepository.rejectBatch(batchId, userId, isPro);
+
+      // Notifier via WebSocket
+      if (rejectedProposals.length > 0) {
+        const firstProposal = rejectedProposals[0];
+        websocketService.notifyProposalRejected(
+          batchId,
+          firstProposal.user_id,
+          firstProposal.borrowed_pro_id,
+          isPro ? 'pro' : 'user'
+        );
+      }
+
+      return {
+        success: true,
+        message: 'Propositions refusées avec succès',
+        batchId: batchId,
+        proposals: rejectedProposals.map(p => ({
+          id: p.id,
+          accepted: p.accepted
+        }))
+      };
+    } catch (error) {
+      console.error('Erreur dans rejectBatch:', error);
       throw error;
     }
   }

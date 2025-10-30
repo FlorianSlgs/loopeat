@@ -17,6 +17,7 @@ import { ProSettings } from './apps/pro/pages/pro-settings/pro-settings';
 import { ProHistorical } from './apps/pro/pages/pro-historical/pro-historical';
 import { ProValidation } from './apps/pro/pages/pro-validation/pro-validation';
 import { ProSelection } from './apps/pro/pages/pro-selection/pro-selection';
+import { ProGiveBackValidation } from './apps/pro/pages/pro-give-back-validation/pro-give-back-validation';
 
 import { Test2 } from './apps/admin/test2/test2';
 
@@ -58,7 +59,8 @@ export const routes: Routes = [
       { path: 'parametres', component: ProSettings },
       { path: 'historique', component: ProHistorical },
       { path: 'borrow/validation/:id', component: ProValidation },
-      { path: 'borrow/select', component: ProSelection }
+      { path: 'borrow/select', component: ProSelection },
+      { path: 'give-back/validate', component: ProGiveBackValidation },
     ]
   },
 

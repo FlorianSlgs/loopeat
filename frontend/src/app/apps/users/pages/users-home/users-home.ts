@@ -21,12 +21,16 @@ export class UsersHome implements OnInit, OnDestroy {
       const newProposal = this.wsService.proposalCreated();
       if (newProposal) {
         console.log('📦 [USERS-HOME] Nouvelle proposition reçue:', newProposal);
-        
-        const proposalId = newProposal.proposalId;
-        
-        if (proposalId) {
-          console.log('🔀 [USERS-HOME] Redirection vers validation:', proposalId);
-          this.router.navigate(['/utilisateurs/borrow/validation', proposalId]);
+
+        // Vérifier si c'est un batch ou une proposition unique
+        if (newProposal.isBatch && newProposal.batchId) {
+          console.log(`🔀 [USERS-HOME] Redirection vers validation batch: ${newProposal.batchId} (${newProposal.proposalIds?.length} propositions)`);
+          this.router.navigate(['/utilisateurs/borrow/validation', newProposal.batchId], {
+            queryParams: { type: 'batch' }
+          });
+        } else if (newProposal.proposalId) {
+          console.log('🔀 [USERS-HOME] Redirection vers validation unique:', newProposal.proposalId);
+          this.router.navigate(['/utilisateurs/borrow/validation', newProposal.proposalId]);
         } else {
           console.error('❌ [USERS-HOME] ID de proposition manquant:', newProposal);
         }

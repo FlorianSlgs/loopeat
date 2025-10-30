@@ -145,6 +145,51 @@ class WebSocketService {
   }
 
   /**
+   * 🆕 Créer un batch de propositions avec un seul timer
+   */
+  startBatchTimer(batchId, proposalIds, userId, proId) {
+    // Si un batch existe déjà, le nettoyer
+    if (this.activeProposals.has(batchId)) {
+      this.cancelProposalTimer(batchId);
+    }
+
+    console.log(`⏱️ [WS] Démarrage du timer pour le batch: ${batchId} (${proposalIds.length} propositions)`);
+
+    // Notifier le user et le pro du nouveau batch
+    this.io.to(`user:${userId}`).emit('proposal:created', {
+      proposalId: batchId,
+      batchId: batchId,
+      isBatch: true,
+      proposalIds: proposalIds,
+      expiresIn: 300000 // 5 minutes en ms
+    });
+
+    this.io.to(`user:${proId}`).emit('proposal:created', {
+      proposalId: batchId,
+      batchId: batchId,
+      isBatch: true,
+      proposalIds: proposalIds,
+      expiresIn: 300000
+    });
+
+    // Créer un timer de 5 minutes pour le batch entier
+    const timerId = setTimeout(() => {
+      console.log(`⏰ [WS] Timer expiré pour le batch: ${batchId}`);
+      this.expireProposal(batchId);
+    }, 300000); // 5 minutes
+
+    // Stocker les infos du batch
+    this.activeProposals.set(batchId, {
+      userId,
+      proId,
+      timerId,
+      createdAt: Date.now(),
+      isBatch: true,
+      proposalIds
+    });
+  }
+
+  /**
    * Annuler le timer d'une proposition
    */
   cancelProposalTimer(proposalId) {

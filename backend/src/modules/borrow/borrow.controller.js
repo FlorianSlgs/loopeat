@@ -286,6 +286,86 @@ class BorrowController {
     }
   }
 
+  /**
+   * [PRO/USER] Récupérer toutes les propositions d'un batch
+   * GET /api/borrow/batch/:batchId
+   */
+  async getBatchProposals(req, res) {
+    try {
+      console.log('📦 Récupération d\'un batch de propositions');
+      console.log('User ID:', req.user.id);
+      console.log('Batch ID:', req.params.batchId);
+
+      const result = await borrowService.getProposalsByBatchId(
+        req.params.batchId,
+        req.user.id,
+        req.user.isPro
+      );
+
+      console.log('✅ Batch récupéré:', result.proposals.length, 'propositions');
+      return res.json(result);
+    } catch (error) {
+      console.error('❌ Erreur lors de la récupération du batch:', error);
+      return res.status(500).json({
+        success: false,
+        message: error.message || 'Erreur lors de la récupération du batch'
+      });
+    }
+  }
+
+  /**
+   * [USER] Accepter un batch entier de propositions
+   * POST /api/borrow/batch/:batchId/accept
+   */
+  async acceptBatch(req, res) {
+    try {
+      console.log('✅ Acceptation d\'un batch de propositions');
+      console.log('User ID:', req.user.id);
+      console.log('Batch ID:', req.params.batchId);
+
+      const result = await borrowService.acceptBatch(
+        req.params.batchId,
+        req.user.id
+      );
+
+      console.log('✅ Batch accepté avec succès');
+      return res.json(result);
+    } catch (error) {
+      console.error('❌ Erreur lors de l\'acceptation du batch:', error);
+      return res.status(500).json({
+        success: false,
+        message: error.message || 'Erreur lors de l\'acceptation du batch'
+      });
+    }
+  }
+
+  /**
+   * [USER/PRO] Refuser un batch entier de propositions
+   * POST /api/borrow/batch/:batchId/reject
+   */
+  async rejectBatch(req, res) {
+    try {
+      console.log('❌ Refus d\'un batch de propositions');
+      console.log('User ID:', req.user.id);
+      console.log('Batch ID:', req.params.batchId);
+
+      const result = await borrowService.rejectBatch(
+        req.params.batchId,
+        req.user.id,
+        req.user.isPro
+      );
+
+      console.log('✅ Batch refusé avec succès');
+      return res.json(result);
+    } catch (error) {
+      console.error('❌ Erreur lors du refus du batch:', error);
+      return res.status(500).json({
+        success: false,
+        message: error.message || 'Erreur lors du refus du batch'
+      });
+    }
+  }
+
 }
 
 module.exports = new BorrowController();

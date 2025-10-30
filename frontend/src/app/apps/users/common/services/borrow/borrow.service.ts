@@ -125,4 +125,36 @@ export class BorrowService {
     );
   }
 
+  /**
+   * 🆕 Récupérer toutes les propositions d'un batch
+   */
+  getBatchProposals(batchId: string): Observable<ApiResponse<any>> {
+    return this.http.get<ApiResponse<any>>(
+      `${this.apiUrl}/batch/${batchId}`,
+      { withCredentials: true }
+    );
+  }
+
+  /**
+   * 🆕 Accepter un batch entier de propositions
+   */
+  acceptBatch(batchId: string): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(
+      `${this.apiUrl}/batch/${batchId}/accept`,
+      {},
+      { withCredentials: true }
+    );
+  }
+
+  /**
+   * 🆕 Refuser un batch entier de propositions
+   */
+  rejectBatch(batchId: string): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(
+      `${this.apiUrl}/batch/${batchId}/reject`,
+      {},
+      { withCredentials: true }
+    );
+  }
+
 }

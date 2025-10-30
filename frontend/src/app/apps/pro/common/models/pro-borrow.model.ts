@@ -14,6 +14,7 @@ export interface ProBorrowProposal {
   created: string;
   status: 'pending' | 'accepted' | 'rejected';
   timeRemaining: number;
+  batchId?: string;
 }
 
 export interface ProBorrowProposalGroup {
@@ -51,11 +52,13 @@ export interface CreateProposalRequest {
 export interface CreateProposalResponse {
   success: boolean;
   message: string;
+  batchId: string;
   proposals: Array<{
     id: string;
     type: number;
     number: number;
     created: string;
+    batchId: string;
     expiresIn: number;
   }>;
   user: {
@@ -69,4 +72,19 @@ export interface ProWebSocketEvent {
   proposalId: string;
   expiresIn?: number;
   rejectedBy?: 'user' | 'pro';
+}
+
+export interface BatchProposalsResponse {
+  success: boolean;
+  batchId: string;
+  proposals: ProBorrowProposal[];
+  user: {
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  pro: {
+    name: string;
+    email: string;
+  };
 }

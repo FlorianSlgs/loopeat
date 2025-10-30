@@ -7,7 +7,8 @@ import {
   CreateProposalRequest,
   CreateProposalResponse,
   ProBorrowProposalGroup,
-  ProProposalDetails
+  ProProposalDetails,
+  BatchProposalsResponse
 } from '../../models/pro-borrow.model';
 
 interface ApiResponse<T> {
@@ -77,6 +78,16 @@ export class ProBorrowService {
   getProposal(proposalId: string): Observable<ApiResponse<ProProposalDetails>> {
     return this.http.get<ApiResponse<ProProposalDetails>>(
       `${this.apiUrl}/proposal/${proposalId}`,
+      { withCredentials: true }
+    );
+  }
+
+  /**
+   * Récupérer toutes les propositions d'un batch par batch_id
+   */
+  getBatchProposals(batchId: string): Observable<BatchProposalsResponse> {
+    return this.http.get<BatchProposalsResponse>(
+      `${this.apiUrl}/batch/${batchId}`,
       { withCredentials: true }
     );
   }

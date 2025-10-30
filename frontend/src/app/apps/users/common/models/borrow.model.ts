@@ -5,6 +5,7 @@ export interface UserBorrowProposal {
   type: number;
   number: number;
   timeRemaining: number;
+  batchId?: string;
 }
 
 export interface UserBorrowProposalGroup {
@@ -23,6 +24,22 @@ export interface UserProposalDetails {
   borrowed: string | null;
   created: string;
   timeRemaining: number;
+  batchId?: string;
+  user: {
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  pro: {
+    name: string;
+    email: string;
+  };
+}
+
+export interface BatchProposalsResponse {
+  success: boolean;
+  batchId: string;
+  proposals: UserBorrowProposal[];
   user: {
     firstName: string;
     lastName: string;
@@ -36,6 +53,9 @@ export interface UserProposalDetails {
 
 export interface UserWebSocketEvent {
   proposalId: string;
+  batchId?: string;
+  isBatch?: boolean;
+  proposalIds?: string[];
   expiresIn?: number;
   rejectedBy?: 'user' | 'pro';
 }

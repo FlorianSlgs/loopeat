@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, inject, signal, computed } from '@angular
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ProBorrowService } from '../../common/services/pro-borrow/pro-borrow.service';
-import { ProProposalDetails } from '../../common/models/pro-borrow.model';
+import { ProBorrowProposal } from '../../common/models/pro-borrow.model';
 
 enum ProposalStatus {
   PENDING = 'pending',
@@ -24,7 +24,9 @@ export class ProValidation implements OnInit, OnDestroy {
   private readonly borrowService = inject(ProBorrowService);
 
   // Signaux
-  readonly proposal = signal<ProProposalDetails | null>(null);
+  readonly batchId = signal<string | null>(null);
+  readonly proposals = signal<ProBorrowProposal[]>([]);
+  readonly userInfo = signal<{firstName: string, lastName: string, email: string} | null>(null);
   readonly status = signal<ProposalStatus>(ProposalStatus.PENDING);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
@@ -32,77 +34,87 @@ export class ProValidation implements OnInit, OnDestroy {
 
   // Timers
   private timerInterval: any = null;
-  private pollingInterval: any = null; // 🆕 Polling
+  private pollingInterval: any = null;
 
   // Computed
   readonly minutes = computed(() => Math.floor(this.timeRemaining() / 60000));
   readonly seconds = computed(() => Math.floor((this.timeRemaining() % 60000) / 1000));
   readonly isExpired = computed(() => this.timeRemaining() <= 0);
-  readonly canCancel = computed(() => 
+  readonly canCancel = computed(() =>
     this.status() === ProposalStatus.PENDING && !this.isExpired()
+  );
+  readonly totalBoxes = computed(() =>
+    this.proposals().reduce((sum, p) => sum + p.number, 0)
   );
 
   ngOnInit(): void {
-    const proposalId = this.route.snapshot.paramMap.get('id');
-    
-    if (!proposalId) {
-      this.error.set('ID de proposition manquant');
+    const batchId = this.route.snapshot.paramMap.get('id');
+
+    if (!batchId) {
+      this.error.set('ID de batch manquant');
       this.loading.set(false);
       return;
     }
 
-    // Charger les détails de la proposition
-    this.loadProposal(proposalId);
+    this.batchId.set(batchId);
+    // Charger toutes les propositions du batch
+    this.loadBatchProposals(batchId);
   }
 
   ngOnDestroy(): void {
     this.stopTimer();
-    this.stopPolling(); // 🆕 Arrêter le polling
+    this.stopPolling();
   }
 
-  private loadProposal(proposalId: string): void {
-    this.borrowService.getProposal(proposalId).subscribe({
+  private loadBatchProposals(batchId: string): void {
+    this.borrowService.getBatchProposals(batchId).subscribe({
       next: (response) => {
-        if (response.success && response.proposal) {
-          this.proposal.set(response.proposal);
-          this.timeRemaining.set(response.proposal.timeRemaining);
-          
-          // Déterminer le statut
-          if (response.proposal.accepted === true) {
-            this.status.set(ProposalStatus.ACCEPTED);
-            this.stopPolling(); // Arrêter le polling si accepté
-          } else if (response.proposal.accepted === false) {
-            this.status.set(ProposalStatus.REJECTED);
-            this.stopPolling(); // Arrêter le polling si rejeté
-          } else if (response.proposal.timeRemaining <= 0) {
-            this.status.set(ProposalStatus.EXPIRED);
-            this.stopPolling(); // Arrêter le polling si expiré
-          } else {
-            this.status.set(ProposalStatus.PENDING);
-            this.startTimer();
-            this.startPolling(proposalId); // 🆕 Démarrer le polling
+        if (response.success && response.proposals) {
+          this.proposals.set(response.proposals);
+          this.userInfo.set(response.user);
+
+          // Utiliser le timeRemaining de la première proposition
+          const firstProposal = response.proposals[0];
+          if (firstProposal) {
+            this.timeRemaining.set(firstProposal.timeRemaining);
+
+            // Déterminer le statut (toutes les propositions du batch ont le même statut)
+            if (firstProposal.accepted === true) {
+              this.status.set(ProposalStatus.ACCEPTED);
+              this.stopPolling();
+            } else if (firstProposal.accepted === false) {
+              this.status.set(ProposalStatus.REJECTED);
+              this.stopPolling();
+            } else if (firstProposal.timeRemaining <= 0) {
+              this.status.set(ProposalStatus.EXPIRED);
+              this.stopPolling();
+            } else {
+              this.status.set(ProposalStatus.PENDING);
+              this.startTimer();
+              this.startPolling(batchId);
+            }
           }
         }
         this.loading.set(false);
       },
       error: (err) => {
-        console.error('Erreur lors du chargement de la proposition:', err);
-        this.error.set('Impossible de charger la proposition');
+        console.error('Erreur lors du chargement du batch:', err);
+        this.error.set('Impossible de charger les propositions');
         this.loading.set(false);
       }
     });
   }
 
-  // 🆕 Démarrer le polling (vérification toutes les 2 secondes)
-  private startPolling(proposalId: string): void {
+  // Démarrer le polling (vérification toutes les 2 secondes)
+  private startPolling(batchId: string): void {
     console.log('🔄 Démarrage du polling...');
-    
+
     this.pollingInterval = setInterval(() => {
-      this.checkProposalStatus(proposalId);
+      this.checkBatchStatus(batchId);
     }, 2000); // Vérifier toutes les 2 secondes
   }
 
-  // 🆕 Arrêter le polling
+  // Arrêter le polling
   private stopPolling(): void {
     if (this.pollingInterval) {
       console.log('⏹️ Arrêt du polling');
@@ -111,34 +123,34 @@ export class ProValidation implements OnInit, OnDestroy {
     }
   }
 
-  // 🆕 Vérifier le statut de la proposition
-  private checkProposalStatus(proposalId: string): void {
+  // Vérifier le statut du batch
+  private checkBatchStatus(batchId: string): void {
     // Ne pas afficher le loading pendant le polling pour éviter le clignotement
-    this.borrowService.getProposal(proposalId).subscribe({
+    this.borrowService.getBatchProposals(batchId).subscribe({
       next: (response) => {
-        if (response.success && response.proposal) {
-          const proposal = response.proposal;
-          
+        if (response.success && response.proposals && response.proposals.length > 0) {
+          const firstProposal = response.proposals[0];
+
           // Mettre à jour le temps restant
-          this.timeRemaining.set(proposal.timeRemaining);
-          
+          this.timeRemaining.set(firstProposal.timeRemaining);
+
           // Vérifier si le statut a changé
-          if (proposal.accepted === true && this.status() !== ProposalStatus.ACCEPTED) {
-            console.log('✅ Proposition acceptée !');
+          if (firstProposal.accepted === true && this.status() !== ProposalStatus.ACCEPTED) {
+            console.log('✅ Propositions acceptées !');
             this.status.set(ProposalStatus.ACCEPTED);
-            this.proposal.set(proposal);
+            this.proposals.set(response.proposals);
             this.stopTimer();
             this.stopPolling();
-          } else if (proposal.accepted === false && this.status() !== ProposalStatus.REJECTED) {
-            console.log('❌ Proposition rejetée');
+          } else if (firstProposal.accepted === false && this.status() !== ProposalStatus.REJECTED) {
+            console.log('❌ Propositions rejetées');
             this.status.set(ProposalStatus.REJECTED);
-            this.proposal.set(proposal);
+            this.proposals.set(response.proposals);
             this.stopTimer();
             this.stopPolling();
-          } else if (proposal.timeRemaining <= 0 && this.status() !== ProposalStatus.EXPIRED) {
-            console.log('⏰ Proposition expirée');
+          } else if (firstProposal.timeRemaining <= 0 && this.status() !== ProposalStatus.EXPIRED) {
+            console.log('⏰ Propositions expirées');
             this.status.set(ProposalStatus.EXPIRED);
-            this.proposal.set(proposal);
+            this.proposals.set(response.proposals);
             this.stopTimer();
             this.stopPolling();
           }
@@ -160,7 +172,7 @@ export class ProValidation implements OnInit, OnDestroy {
       if (remaining <= 0) {
         this.status.set(ProposalStatus.EXPIRED);
         this.stopTimer();
-        this.stopPolling(); // Arrêter le polling
+        this.stopPolling();
       }
     }, 1000);
   }
@@ -173,21 +185,20 @@ export class ProValidation implements OnInit, OnDestroy {
   }
 
   cancelProposal(): void {
-    const proposalId = this.proposal()?.id;
-    if (!proposalId || !this.canCancel()) return;
-
-    if (!confirm('Êtes-vous sûr de vouloir annuler cette proposition ?')) {
-      return;
-    }
+    const proposals = this.proposals();
+    if (proposals.length === 0 || !this.canCancel()) return;
 
     this.loading.set(true);
 
-    this.borrowService.cancelProposal(proposalId).subscribe({
+    // Annuler la première proposition (ce qui devrait annuler tout le batch)
+    const firstProposalId = proposals[0].id;
+
+    this.borrowService.cancelProposal(firstProposalId).subscribe({
       next: (response) => {
         if (response.success) {
           this.status.set(ProposalStatus.REJECTED);
           this.stopTimer();
-          this.stopPolling(); // Arrêter le polling
+          this.stopPolling();
         }
         this.loading.set(false);
       },
@@ -205,9 +216,12 @@ export class ProValidation implements OnInit, OnDestroy {
 
   getBoxTypeName(type: number): string {
     const types: { [key: number]: string } = {
-      1: 'Petite boîte',
-      2: 'Moyenne boîte',
-      3: 'Grande boîte'
+      1: 'Boite Salade Verre',
+      2: 'Boite Salade Plastique',
+      3: 'Boite Frites',
+      4: 'Boite Pizza',
+      5: 'Gobelet',
+      6: 'Boite Burger'
     };
     return types[type] || `Type ${type}`;
   }

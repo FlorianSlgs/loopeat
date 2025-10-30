@@ -36,6 +36,10 @@ class BorrowRepository {
     try {
       await client.query('BEGIN');
 
+      // Générer un batch_id unique pour grouper toutes les propositions ensemble
+      const batchIdResult = await client.query('SELECT gen_random_uuid() as batch_id');
+      const batchId = batchIdResult.rows[0].batch_id;
+
       const insertedRows = [];
 
       for (const item of borrowItems) {
@@ -46,16 +50,18 @@ class BorrowRepository {
             number,
             type,
             accepted,
-            borrowed
-          ) VALUES ($1, $2, $3, $4, NULL, NULL)
+            borrowed,
+            batch_id
+          ) VALUES ($1, $2, $3, $4, NULL, NULL, $5)
           RETURNING *
         `;
-        
+
         const result = await client.query(query, [
           userId,
           proId,
           item.number,
-          item.type
+          item.type,
+          batchId
         ]);
 
         insertedRows.push(result.rows[0]);
@@ -76,7 +82,7 @@ class BorrowRepository {
    */
   async getProposalById(proposalId) {
     const query = `
-      SELECT 
+      SELECT
         ub.*,
         u.email as user_email,
         u.first_name,
@@ -90,6 +96,29 @@ class BorrowRepository {
     `;
     const result = await pool.query(query, [proposalId]);
     return result.rows[0];
+  }
+
+  /**
+   * Récupérer toutes les propositions d'un batch par batch_id
+   */
+  async getProposalsByBatchId(batchId) {
+    const query = `
+      SELECT
+        ub.*,
+        u.email as user_email,
+        u.first_name,
+        u.last_name,
+        p.email as pro_email,
+        p.name as pro_name,
+        EXTRACT(EPOCH FROM (NOW() - ub.created))::INTEGER as elapsed_seconds
+      FROM users_boxes ub
+      JOIN users u ON ub.user_id = u.id
+      JOIN professionnal p ON ub.borrowed_pro_id = p.id
+      WHERE ub.batch_id = $1 AND ub.deleted IS NULL
+      ORDER BY ub.type ASC
+    `;
+    const result = await pool.query(query, [batchId]);
+    return result.rows;
   }
 
   /**
@@ -194,18 +223,18 @@ class BorrowRepository {
       if (isPro) {
         checkQuery = `
           SELECT * FROM users_boxes
-          WHERE id = $1 
-            AND borrowed_pro_id = $2 
-            AND accepted IS NULL 
+          WHERE id = $1
+            AND borrowed_pro_id = $2
+            AND accepted IS NULL
             AND deleted IS NULL
             AND created > NOW() - INTERVAL '5 minutes'
         `;
       } else {
         checkQuery = `
           SELECT * FROM users_boxes
-          WHERE id = $1 
-            AND user_id = $2 
-            AND accepted IS NULL 
+          WHERE id = $1
+            AND user_id = $2
+            AND accepted IS NULL
             AND deleted IS NULL
             AND created > NOW() - INTERVAL '5 minutes'
         `;
@@ -228,6 +257,140 @@ class BorrowRepository {
 
       await client.query('COMMIT');
       return result.rows[0];
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
+   * Accepter un batch entier de propositions (USER)
+   */
+  async acceptBatch(batchId, userId) {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      // Vérifier que toutes les propositions du batch existent et appartiennent à l'utilisateur
+      const checkQuery = `
+        SELECT * FROM users_boxes
+        WHERE batch_id = $1
+          AND user_id = $2
+          AND accepted IS NULL
+          AND deleted IS NULL
+          AND created > NOW() - INTERVAL '5 minutes'
+      `;
+      const checkResult = await client.query(checkQuery, [batchId, userId]);
+
+      if (checkResult.rows.length === 0) {
+        throw new Error('Propositions non trouvées, expirées ou déjà traitées');
+      }
+
+      const proposals = checkResult.rows;
+      const updatedProposals = [];
+
+      // Pour chaque proposition du batch
+      for (const proposal of proposals) {
+        // Mettre à jour la proposition avec accepted = true et la date d'emprunt
+        const updateQuery = `
+          UPDATE users_boxes
+          SET accepted = true, borrowed = CURRENT_TIMESTAMP
+          WHERE id = $1
+          RETURNING *
+        `;
+        const updateResult = await client.query(updateQuery, [proposal.id]);
+
+        // Mettre à jour l'inventaire du professionnel (retirer des boîtes propres)
+        const updateProBoxesQuery = `
+          UPDATE pro_boxes
+          SET clean = clean - $1
+          WHERE pro_id = $2 AND type = $3 AND clean >= $1
+          RETURNING *
+        `;
+        const proBoxesResult = await client.query(updateProBoxesQuery, [
+          proposal.number,
+          proposal.borrowed_pro_id,
+          proposal.type
+        ]);
+
+        if (proBoxesResult.rows.length === 0) {
+          throw new Error(`Stock insuffisant chez le professionnel pour le type ${proposal.type}`);
+        }
+
+        // Enregistrer dans l'historique mensuel
+        const historyQuery = `
+          INSERT INTO boxes_history (pro_id, number, month, created, last_update)
+          VALUES ($1, $2, DATE_TRUNC('month', CURRENT_DATE), NOW(), NOW())
+          ON CONFLICT (pro_id, month)
+          DO UPDATE SET
+            number = boxes_history.number + EXCLUDED.number,
+            last_update = NOW()
+          RETURNING *
+        `;
+        await client.query(historyQuery, [proposal.borrowed_pro_id, proposal.number]);
+
+        updatedProposals.push(updateResult.rows[0]);
+      }
+
+      await client.query('COMMIT');
+      return updatedProposals;
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
+   * Refuser un batch entier de propositions (USER ou PRO)
+   */
+  async rejectBatch(batchId, userId, isPro = false) {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      // Vérifier que toutes les propositions du batch existent
+      let checkQuery;
+      if (isPro) {
+        checkQuery = `
+          SELECT * FROM users_boxes
+          WHERE batch_id = $1
+            AND borrowed_pro_id = $2
+            AND accepted IS NULL
+            AND deleted IS NULL
+            AND created > NOW() - INTERVAL '5 minutes'
+        `;
+      } else {
+        checkQuery = `
+          SELECT * FROM users_boxes
+          WHERE batch_id = $1
+            AND user_id = $2
+            AND accepted IS NULL
+            AND deleted IS NULL
+            AND created > NOW() - INTERVAL '5 minutes'
+        `;
+      }
+
+      const checkResult = await client.query(checkQuery, [batchId, userId]);
+
+      if (checkResult.rows.length === 0) {
+        throw new Error('Propositions non trouvées, expirées ou déjà traitées');
+      }
+
+      // Mettre à jour toutes les propositions du batch avec accepted = false
+      const updateQuery = `
+        UPDATE users_boxes
+        SET accepted = false
+        WHERE batch_id = $1
+        RETURNING *
+      `;
+      const result = await client.query(updateQuery, [batchId]);
+
+      await client.query('COMMIT');
+      return result.rows;
     } catch (error) {
       await client.query('ROLLBACK');
       throw error;

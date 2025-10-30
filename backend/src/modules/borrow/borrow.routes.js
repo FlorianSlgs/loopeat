@@ -15,6 +15,11 @@ router.get('/proposal/:proposalId', authMiddleware, (req, res) => {
   borrowController.getProposal(req, res);
 });
 
+// Récupérer toutes les propositions d'un batch par batch_id
+router.get('/batch/:batchId', authMiddleware, (req, res) => {
+  borrowController.getBatchProposals(req, res);
+});
+
 /**
  * Routes pour les professionnels
  */
@@ -120,6 +125,28 @@ router.post('/reject/:proposalId', authMiddleware, (req, res) => {
     });
   }
   borrowController.rejectProposal(req, res);
+});
+
+// Accepter un batch entier de propositions (USER uniquement)
+router.post('/batch/:batchId/accept', authMiddleware, (req, res) => {
+  if (req.user.isPro) {
+    return res.status(403).json({
+      success: false,
+      message: 'Accès réservé aux utilisateurs'
+    });
+  }
+  borrowController.acceptBatch(req, res);
+});
+
+// Refuser un batch entier de propositions (USER uniquement)
+router.post('/batch/:batchId/reject', authMiddleware, (req, res) => {
+  if (req.user.isPro) {
+    return res.status(403).json({
+      success: false,
+      message: 'Accès réservé aux utilisateurs'
+    });
+  }
+  borrowController.rejectBatch(req, res);
 });
 
 // 🆕 Récupérer l'historique des emprunts et retours (USER uniquement)

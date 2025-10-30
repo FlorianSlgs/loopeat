@@ -111,12 +111,19 @@ export class ProDashboard implements OnInit {
   }
   
   /**
-   * Rendre des boîtes
-   */
+ * Rendre des boîtes
+ */
   returnBoxes() {
     if (this.customerCode.trim()) {
-      console.log('Rendre des boîtes du client:', this.customerCode);
-      alert(`Rendre des boîtes du client: ${this.customerCode}`);
+      if (!/^\d{4}$/.test(this.customerCode.trim())) {
+        alert('Le code client doit être composé de 4 chiffres');
+        return;
+      }
+
+      this.router.navigate(['/pro/give-back/validate'], {
+        queryParams: { code: this.customerCode.trim() }
+      });
+      
       this.customerCode = '';
     } else {
       alert('Veuillez entrer un code client');

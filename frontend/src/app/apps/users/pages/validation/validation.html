@@ -1,6 +1,6 @@
 <!-- src/app/apps/user/components/borrow-validation/borrow-validation.html -->
-<div class="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 p-4">
-  <div class="max-w-2xl mx-auto pt-8">
+<div class="pt-20 bg-gradient-to-br from-green-50 to-blue-50 p-4">
+  <div class="max-w-3xl mx-auto pt-8">
     
     <!-- Chargement -->
     @if (loading()) {
@@ -28,15 +28,27 @@
     }
 
     <!-- Contenu principal -->
-    @if (proposal() && !loading() && !error()) {
+    @if ((proposal() || batchProposals()) && !loading() && !error()) {
       <div class="bg-white rounded-lg shadow-lg overflow-hidden">
-        
+
         <!-- En-tête avec statut -->
         <div class="p-6 border-b border-gray-200">
           <div class="flex justify-between items-start">
             <div>
-              <h1 class="text-2xl font-bold text-gray-900">Proposition d'emprunt</h1>
-              <p class="text-gray-600 mt-1">De {{ proposal()!.pro.name }}</p>
+              <h1 class="text-lg font-bold text-gray-900">
+                @if (isBatch()) {
+                  Propositions d'emprunt
+                } @else {
+                  Proposition d'emprunt
+                }
+              </h1>
+              <p class="text-gray-600 mt-1">
+                @if (isBatch()) {
+                  De {{ batchProposals()!.pro.name }}
+                } @else {
+                  De {{ proposal()!.pro.name }}
+                }
+              </p>
             </div>
             
             <!-- Badge de statut -->
@@ -47,68 +59,89 @@
             }
             @if (status() === 'accepted') {
               <span class="px-4 py-2 bg-green-100 text-green-800 rounded-full font-medium">
-                ✓ Acceptée
+                Validé
               </span>
             }
             @if (status() === 'rejected') {
               <span class="px-4 py-2 bg-red-100 text-red-800 rounded-full font-medium">
-                ✗ Refusée
+                Refusé
               </span>
             }
             @if (status() === 'expired') {
               <span class="px-4 py-2 bg-gray-100 text-gray-800 rounded-full font-medium">
-                ⏰ Expirée
+                Expiré
               </span>
             }
           </div>
-
-          <!-- Timer -->
-          @if (status() === 'pending' && !isExpired()) {
-            <div class="mt-4 p-4 bg-blue-50 rounded-lg">
-              <div class="flex items-center justify-center">
-                <svg class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span class="text-2xl font-mono font-bold text-blue-600">
-                  {{ minutes() }}:{{ seconds() < 10 ? '0' : '' }}{{ seconds() }}
-                </span>
-              </div>
-              <p class="text-center text-sm text-blue-700 mt-1">Temps restant pour répondre</p>
-            </div>
-          }
         </div>
 
         <!-- Détails de la proposition -->
         <div class="p-6">
           <h2 class="text-lg font-semibold text-gray-900 mb-4">Détails de l'emprunt</h2>
-          
-          <div class="bg-gray-50 rounded-lg p-4 mb-6">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-sm text-gray-600">Type de boîte</p>
-                <p class="text-lg font-semibold text-gray-900">{{ getBoxTypeName(proposal()!.type) }}</p>
-              </div>
-              <div class="text-right">
-                <p class="text-sm text-gray-600">Quantité</p>
-                <p class="text-3xl font-bold text-green-600">{{ proposal()!.number }}</p>
-              </div>
-            </div>
-          </div>
 
-          <div class="space-y-3 text-sm">
-            <div class="flex justify-between">
-              <span class="text-gray-600">Restaurant</span>
-              <span class="font-medium text-gray-900">{{ proposal()!.pro.name }}</span>
+          @if (isBatch()) {
+            <!-- Affichage pour batch multiple -->
+            <div class="space-y-3 mb-6">
+              @for (proposal of batchProposals()!.proposals; track proposal.id) {
+                <div class="bg-gray-50 rounded-lg p-4">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-sm text-gray-600">Type de boîte</p>
+                      <p class="text-lg font-semibold text-gray-900">{{ getBoxTypeName(proposal.type) }}</p>
+                    </div>
+                    <div class="text-right">
+                      <p class="text-sm text-gray-600">Quantité</p>
+                      <p class="text-3xl font-bold text-green-600">{{ proposal.number }}</p>
+                    </div>
+                  </div>
+                </div>
+              }
             </div>
-            <div class="flex justify-between">
-              <span class="text-gray-600">Email</span>
-              <span class="font-medium text-gray-900">{{ proposal()!.pro.email }}</span>
+
+            <!-- Total pour le batch -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <div class="flex items-center justify-between">
+                <span class="text-sm font-medium text-blue-800">Total de boîtes</span>
+                <span class="text-2xl font-bold text-blue-600">{{ totalBoxes() }}</span>
+              </div>
             </div>
-            <div class="flex justify-between">
-              <span class="text-gray-600">Date de proposition</span>
-              <span class="font-medium text-gray-900">{{ proposal()!.created | date:'short' }}</span>
+
+            <div class="space-y-3 text-sm">
+              <div class="flex justify-between">
+                <span class="text-gray-600">Restaurant</span>
+                <span class="font-medium text-gray-900">{{ batchProposals()!.pro.name }}</span>
+              </div>
+              <div class="flex flex-col gap-1">
+                <span class="text-gray-600">Types de boîtes</span>
+                <div class="font-medium text-gray-900">
+                  @for (proposal of batchProposals()!.proposals; track proposal.id; let isLast = $last) {
+                    <span>{{ proposal.number }} {{ getBoxTypeName(proposal.type) }}</span>@if (!isLast) {<span class="text-gray-500"> + </span>}
+                  }
+                </div>
+              </div>
             </div>
-          </div>
+          } @else {
+            <!-- Affichage pour proposition unique -->
+            <div class="bg-gray-50 rounded-lg p-4 mb-6">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm text-gray-600">Type de boîte</p>
+                  <p class="text-lg font-semibold text-gray-900">{{ getBoxTypeName(proposal()!.type) }}</p>
+                </div>
+                <div class="text-right">
+                  <p class="text-sm text-gray-600">Quantité</p>
+                  <p class="text-3xl font-bold text-green-600">{{ proposal()!.number }}</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="space-y-3 text-sm">
+              <div class="flex justify-between">
+                <span class="text-gray-600">Restaurant</span>
+                <span class="font-medium text-gray-900">{{ proposal()!.pro.name }}</span>
+              </div>
+            </div>
+          }
         </div>
 
         <!-- Actions -->
@@ -128,44 +161,7 @@
                 Accepter
               </button>
             </div>
-            <p class="text-center text-sm text-gray-600 mt-4">
-              En acceptant, vous confirmez emprunter ces boîtes
-            </p>
           } @else {
-            @if (status() === 'accepted') {
-              <div class="text-center">
-                <div class="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
-                  <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <p class="text-lg font-semibold text-gray-900 mb-2">Proposition acceptée !</p>
-                <p class="text-gray-600 mb-4">Vous pouvez récupérer vos boîtes chez {{ proposal()!.pro.name }}</p>
-              </div>
-            }
-            @if (status() === 'rejected') {
-              <div class="text-center">
-                <div class="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
-                  <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </div>
-                <p class="text-lg font-semibold text-gray-900 mb-2">Proposition refusée</p>
-                <p class="text-gray-600 mb-4">Cette proposition a été déclinée</p>
-              </div>
-            }
-            @if (status() === 'expired') {
-              <div class="text-center">
-                <div class="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
-                  <svg class="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <p class="text-lg font-semibold text-gray-900 mb-2">Proposition expirée</p>
-                <p class="text-gray-600 mb-4">Le délai de 5 minutes est écoulé</p>
-              </div>
-            }
-            
             <button
               (click)="goBack()"
               class="w-full px-6 py-3 bg-gray-600 text-white rounded-lg font-semibold hover:bg-gray-700 transition-colors">

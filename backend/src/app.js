@@ -57,6 +57,11 @@ try {
   app.use('/api/accounts', accountsRoutes);
   console.log('✅ Routes accounts chargées');
 
+  // Routes de retour (give_back)
+  const giveBackRoutes = require('./modules/give_back/give_back.routes');
+  app.use('/api/give-back', giveBackRoutes);
+  console.log('✅ Routes give_back chargées');
+
 } catch (err) {
   console.error('❌ Erreur lors du chargement des routes:', err);
   throw err;
