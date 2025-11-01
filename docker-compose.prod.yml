@@ -1,0 +1,95 @@
+version: '3.8'
+
+services:
+  # Base de données PostgreSQL (production)
+  database:
+    image: postgres:16-alpine
+    container_name: loopeat-postgres-prod
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+      - ./backend/init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - loopeat-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    # Pas d'exposition de port en production (uniquement accès interne)
+
+  # Backend API (Express.js)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    image: loopeat-backend:latest
+    container_name: loopeat-backend-prod
+    restart: unless-stopped
+    ports:
+      - "3900:3000"  # Exposé sur le port 3900 pour Apache
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DB_HOST=database
+      - DB_PORT=5432
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@database:5432/${DB_NAME}
+      - JWT_SECRET=${JWT_SECRET}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+      - DEV_EMAIL_USER=${EMAIL_USER}
+      - DEV_EMAIL_PASSWORD=${EMAIL_PASSWORD}
+      - FRONTEND_URL=${FRONTEND_URL:-https://loopeat.com}
+    networks:
+      - loopeat-network
+    depends_on:
+      database:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+  # Frontend Angular SSR
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    image: loopeat-frontend:latest
+    container_name: loopeat-frontend-prod
+    restart: unless-stopped
+    ports:
+      - "4900:4000"  # Exposé sur le port 4900 pour Apache
+    environment:
+      - NODE_ENV=production
+      - PORT=4000
+      - API_URL=${API_URL:-http://backend:3000/api}
+    networks:
+      - loopeat-network
+    depends_on:
+      - backend
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:4000', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 15s
+
+networks:
+  loopeat-network:
+    driver: bridge
+    name: loopeat-network
+
+volumes:
+  postgres_prod_data:
+    name: loopeat_postgres_data
