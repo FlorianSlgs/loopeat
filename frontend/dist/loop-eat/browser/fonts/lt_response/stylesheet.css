@@ -1,0 +1,108 @@
+@font-face {
+    font-family: 'LT Reponse';
+    src: url('LTReponse.woff2') format('woff2'),
+        url('LTReponse.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'LT Reponse';
+    src: url('LTReponseItalic.woff2') format('woff2'),
+        url('LTReponseItalic.woff') format('woff');
+    font-weight: normal;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'LT Reponse Rounded';
+    src: url('LTReponse.woff2') format('woff2'),
+        url('LTReponse.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'LT Reponse Rounded Two';
+    src: url('LTReponse.woff2') format('woff2'),
+        url('LTReponse.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'LT Reponse';
+    src: url('LTReponseBold.woff2') format('woff2'),
+        url('LTReponseBold.woff') format('woff');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'LT Reponse Rounded Two';
+    src: url('LTReponseRoundedTwoBold.woff2') format('woff2'),
+        url('LTReponseRoundedTwoBold.woff') format('woff');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'LT Reponse Rounded';
+    src: url('LTReponseRoundedItalic.woff2') format('woff2'),
+        url('LTReponseRoundedItalic.woff') format('woff');
+    font-weight: normal;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'LT Reponse Rounded';
+    src: url('LTReponseRoundedBoldItalic.woff2') format('woff2'),
+        url('LTReponseRoundedBoldItalic.woff') format('woff');
+    font-weight: bold;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'LT Reponse';
+    src: url('LTReponseBoldItalic.woff2') format('woff2'),
+        url('LTReponseBoldItalic.woff') format('woff');
+    font-weight: bold;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'LT Reponse Rounded';
+    src: url('LTReponseRoundedBold.woff2') format('woff2'),
+        url('LTReponseRoundedBold.woff') format('woff');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'LT Reponse Rounded Two';
+    src: url('LTReponseRoundedTwoBoldItalic.woff2') format('woff2'),
+        url('LTReponseRoundedTwoBoldItalic.woff') format('woff');
+    font-weight: bold;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'LT Reponse Rounded Two';
+    src: url('LTReponseRoundedTwoItalic.woff2') format('woff2'),
+        url('LTReponseRoundedTwoItalic.woff') format('woff');
+    font-weight: normal;
+    font-style: italic;
+    font-display: swap;
+}
+
