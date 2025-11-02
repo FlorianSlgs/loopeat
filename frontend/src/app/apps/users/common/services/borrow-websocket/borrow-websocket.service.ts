@@ -1,7 +1,7 @@
 // src/app/apps/user/services/user-borrow-websocket.service.ts
 import { Injectable, signal } from '@angular/core';
 import { io, Socket } from 'socket.io-client';
-import { environment } from '../../../../../../environments/environment.development';
+import { environment } from '../../../../../../environments/environment';
 import { UserWebSocketEvent } from '../../models/borrow.model';
 
 @Injectable({
