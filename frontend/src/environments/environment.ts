@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'http://loopeat.duckdns.org/api'
+  apiUrl: 'https://loopeat.duckdns.org/server/api'
 };

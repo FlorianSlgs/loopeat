@@ -4,13 +4,14 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { CheckEmailResponse, VerifyCodeResponse } from '../../../models/user.model';
+import { environment } from '../../../../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class Auth {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:3001/api';
+  private readonly apiUrl = environment.apiUrl;
 
   checkEmail(email: string, isPro: boolean = false): Observable<CheckEmailResponse> {
     console.log('🔵 Auth Service - checkEmail appelé');
