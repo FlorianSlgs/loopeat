@@ -26,9 +26,21 @@ export class BorrowWebsocketService {
       return;
     }
 
-    const socketUrl = environment.apiUrl.replace(/^http/, 'ws').replace('/api', '');
-    
+    // Construction correcte de l'URL WebSocket
+    // Convertir http:// -> ws:// et https:// -> wss://
+    // Supprimer /api et tout ce qui suit (comme /server/api)
+    let socketUrl = environment.apiUrl;
+
+    // Extraire le protocole, le host et le port
+    const url = new URL(socketUrl);
+    const protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+    const host = url.host; // inclut le port si présent
+
+    // Reconstruire l'URL WebSocket sans les paths /server ou /api
+    socketUrl = `${protocol}//${host}`;
+
     console.log('🔌 [USER] Connexion au WebSocket:', socketUrl);
+    console.log('🔌 [USER] API URL source:', environment.apiUrl);
 
     this.socket = io(socketUrl, {
       auth: { token: authToken },
