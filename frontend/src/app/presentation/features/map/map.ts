@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, signal, computed, PLATFORM_ID, inject, ElementRef, viewChild } from '@angular/core';
+import { Component, OnInit, AfterViewInit, signal, computed, PLATFORM_ID, inject, ElementRef, ViewChild } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -29,7 +29,7 @@ export class MapComponent implements OnInit, AfterViewInit {
   private L?: any;
 
   // Référence directe au conteneur de la carte
-  mapContainer = viewChild<ElementRef<HTMLDivElement>>('mapContainer');
+  @ViewChild('mapContainer') mapContainer?: ElementRef<HTMLDivElement>;
   
   searchTerm = signal('');
   selectedRestaurant = signal<Restaurant | null>(null);
@@ -93,12 +93,18 @@ export class MapComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit() {
-    if (isPlatformBrowser(this.platformId) && this.L) {
-      // Initialiser la carte après que la vue soit complètement chargée
-      setTimeout(() => {
-        this.initMap();
-        this.addMarkers();
-      }, 100); // Délai légèrement plus long pour l'hydratation SSR
+    if (isPlatformBrowser(this.platformId)) {
+      // Attendre que Leaflet soit chargé et que la vue soit prête
+      const initWhenReady = () => {
+        if (this.L && this.mapContainer) {
+          this.initMap();
+          this.addMarkers();
+        } else {
+          setTimeout(initWhenReady, 50);
+        }
+      };
+
+      setTimeout(initWhenReady, 100);
 
       // Fermer le tooltip lors d'un clic en dehors
       document.addEventListener('click', (e: MouseEvent) => {
@@ -111,28 +117,39 @@ export class MapComponent implements OnInit, AfterViewInit {
   }
 
   private initMap(): void {
-    if (!this.L || !this.mapContainer()) return;
+    if (!this.L || !this.mapContainer) return;
 
-    const mapElement = this.mapContainer()!.nativeElement;
+    const mapElement = this.mapContainer.nativeElement;
 
     // S'assurer que l'élément existe et n'a pas déjà une carte
     if (!mapElement || mapElement.classList.contains('leaflet-container')) {
       return;
     }
 
-    this.map = this.L.map(mapElement, {
-      center: [43.6108, 3.8767],
-      zoom: 11
-    });
+    try {
+      this.map = this.L.map(mapElement, {
+        center: [43.6108, 3.8767],
+        zoom: 11
+      });
 
-    this.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors'
-    }).addTo(this.map);
+      this.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(this.map);
 
-    // Fermer le tooltip lors du déplacement de la carte
-    this.map.on('movestart', () => {
-      this.closeDetails();
-    });
+      // Forcer le recalcul de la taille de la carte
+      setTimeout(() => {
+        if (this.map) {
+          this.map.invalidateSize();
+        }
+      }, 200);
+
+      // Fermer le tooltip lors du déplacement de la carte
+      this.map.on('movestart', () => {
+        this.closeDetails();
+      });
+    } catch (error) {
+      console.error('Erreur lors de l\'initialisation de la carte:', error);
+    }
   }
 
   private createCustomIcon(type: 'restaurant' | 'foodtruck'): any {

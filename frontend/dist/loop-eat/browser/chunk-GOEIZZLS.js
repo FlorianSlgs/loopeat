@@ -1,1 +1,0 @@
-import{a as o,b as t,c as p,d as m,e}from"./chunk-V4UVJ3OO.js";import"./chunk-N7OUXL7M.js";import"./chunk-6W4ZNQTC.js";import"./chunk-MYNB6ETT.js";var c=[{path:"",component:o},{path:"mot-de-passe",component:e},{path:"verification",component:t},{path:"nom",component:p},{path:"mdp",component:m}];export{c as CONNECTION_ROUTES};
