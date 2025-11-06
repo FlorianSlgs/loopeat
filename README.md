@@ -2,6 +2,8 @@
 
 LoopEat is a full-stack web application that enables restaurants and food trucks in Montpellier, France, to manage a connected reusable container deposit system for takeaway meals.
 
+https://loopeat.duckdns.org/
+
 ## 🏗️ Architecture
 
 This project follows a **monorepo structure** with three main services:
