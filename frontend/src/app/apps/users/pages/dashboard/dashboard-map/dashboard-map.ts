@@ -87,7 +87,8 @@ export class DashboardMap implements OnInit, AfterViewInit {
   async ngOnInit() {
     // Import Leaflet uniquement côté client
     if (isPlatformBrowser(this.platformId)) {
-      this.L = await import('leaflet');
+      const leafletModule = await import('leaflet');
+      this.L = leafletModule.default; // ✅ Accéder à l'export par défaut
     }
   }
 
