@@ -1,0 +1,2 @@
+import './polyfills.server.mjs';
+import{a as o,b as t,c as r,d as p,e as a}from"./chunk-EWXQCNR5.mjs";import"./chunk-2QOCVCIU.mjs";import"./chunk-PMFNFDMQ.mjs";import"./chunk-KXIJJ5ZC.mjs";var d=[{path:"",component:o,data:{isPro:!0}},{path:"mot-de-passe",component:a,data:{isPro:!0}},{path:"verification",component:t,data:{isPro:!0}},{path:"nom",component:r,data:{isPro:!0}},{path:"mdp",component:p,data:{isPro:!0}}];export{d as CONNECTION_PRO_ROUTES};

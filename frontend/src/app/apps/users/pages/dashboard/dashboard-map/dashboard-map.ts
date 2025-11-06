@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, PLATFORM_ID, inject } from '@angular/core';
+import { Component, OnInit, AfterViewInit, signal, computed, PLATFORM_ID, inject, ElementRef, viewChild } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -21,11 +21,14 @@ interface Restaurant {
   templateUrl: './dashboard-map.html',
   styleUrl: './dashboard-map.css'
 })
-export class DashboardMap implements OnInit {
+export class DashboardMap implements OnInit, AfterViewInit {
   private platformId = inject(PLATFORM_ID);
   private map?: any;
   private markers: any[] = [];
   private L?: any;
+
+  // Référence directe au conteneur de la carte
+  mapContainer = viewChild<ElementRef<HTMLDivElement>>('mapContainer');
   
   searchTerm = signal('');
   selectedRestaurant = signal<Restaurant | null>(null);
@@ -82,16 +85,20 @@ export class DashboardMap implements OnInit {
   });
 
   async ngOnInit() {
+    // Import Leaflet uniquement côté client
     if (isPlatformBrowser(this.platformId)) {
-      // Import dynamique de Leaflet uniquement côté client
       this.L = await import('leaflet');
-      
-      // Petit délai pour s'assurer que le DOM est prêt
+    }
+  }
+
+  ngAfterViewInit() {
+    if (isPlatformBrowser(this.platformId) && this.L) {
+      // Initialiser la carte après que la vue soit complètement chargée
       setTimeout(() => {
         this.initMap();
         this.addMarkers();
-      }, 0);
-      
+      }, 100); // Délai légèrement plus long pour l'hydratation SSR
+
       // Fermer le tooltip lors d'un clic en dehors
       document.addEventListener('click', (e: MouseEvent) => {
         const target = e.target as HTMLElement;
@@ -103,9 +110,16 @@ export class DashboardMap implements OnInit {
   }
 
   private initMap(): void {
-    if (!this.L) return;
+    if (!this.L || !this.mapContainer()) return;
 
-    this.map = this.L.map('map', {
+    const mapElement = this.mapContainer()!.nativeElement;
+
+    // S'assurer que l'élément existe et n'a pas déjà une carte
+    if (!mapElement || mapElement.classList.contains('leaflet-container')) {
+      return;
+    }
+
+    this.map = this.L.map(mapElement, {
       center: [43.6108, 3.8767],
       zoom: 11
     });
