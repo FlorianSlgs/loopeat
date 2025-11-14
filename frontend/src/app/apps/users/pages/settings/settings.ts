@@ -108,11 +108,11 @@ export class Settings {
   }
 
   /**
-   * Récupère la solde
+   * Récupère le solde
    */
   recupererSolde(): void {
-    console.log('Récupération de la solde:', this.solde());
-    // Ici, vous ajouteriez l'appel API pour récupérer la solde
+    console.log('Récupération du solde:', this.solde());
+    // Ici, vous ajouteriez l'appel API pour récupérer le solde
     alert(`Demande de récupération de ${this.solde()} € envoyée`);
     this.expandedSection.set(null);
   }

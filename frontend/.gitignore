@@ -42,7 +42,3 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
-
-#Tests
-/cypress/
-cypress.config.ts

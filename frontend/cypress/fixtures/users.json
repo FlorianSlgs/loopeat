@@ -1,0 +1,16 @@
+{
+  "validUser": {
+    "email": "flo.dkniman@gmail.com",
+    "password": "FloFlo46_",
+    "type": "regular"
+  },
+  "validProUser": {
+    "email": "flo.dkniman@gmail.com",
+    "password": "FloFlo46_",
+    "type": "professional"
+  },
+  "invalidUser": {
+    "email": "flo.dkniman@gmail.com",
+    "password": "WrongPassword"
+  }
+}
