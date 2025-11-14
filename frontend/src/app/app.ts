@@ -9,4 +9,8 @@ import { RouterOutlet } from '@angular/router';
 })
 export class App {
   protected readonly title = signal('loop-eat');
+
+  sum(a: number, b: number) {
+    return a + b;
+}
 }

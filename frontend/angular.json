@@ -81,7 +81,7 @@
           "builder": "@angular/build:extract-i18n"
         },
         "test": {
-          "builder": "@angular/build:karma",
+          "builder": "@angular/builders/jest:run",
           "options": {
             "tsConfig": "tsconfig.spec.json",
             "assets": [
@@ -94,11 +94,46 @@
               "src/styles.css"
             ]
           }
+        },
+        "cypress-run": {
+          "builder": "@cypress/schematic:cypress",
+          "options": {
+            "devServerTarget": "loop-eat:serve"
+          },
+          "configurations": {
+            "production": {
+              "devServerTarget": "loop-eat:serve:production"
+            }
+          }
+        },
+        "cypress-open": {
+          "builder": "@cypress/schematic:cypress",
+          "options": {
+            "watch": true,
+            "headless": false
+          }
+        },
+        "e2e": {
+          "builder": "@cypress/schematic:cypress",
+          "options": {
+            "devServerTarget": "loop-eat:serve",
+            "watch": true,
+            "headless": false
+          },
+          "configurations": {
+            "production": {
+              "devServerTarget": "loop-eat:serve:production"
+            }
+          }
         }
       }
     }
   },
   "cli": {
-    "analytics": "3ebb3999-4cdf-4fae-a44b-d2ce8b94f13c"
+    "analytics": "3ebb3999-4cdf-4fae-a44b-d2ce8b94f13c",
+    "schematicCollections": [
+      "@cypress/schematic",
+      "@schematics/angular"
+    ]
   }
 }
